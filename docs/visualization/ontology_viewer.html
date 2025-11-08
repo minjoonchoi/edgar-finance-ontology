@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDGAR-FIN 온톨로지 뷰어</title>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #2c5aa0;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1em;
+        }
+
+        .tabs {
+            background: white;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            overflow: hidden;
+        }
+
+        .tab-button {
+            flex: 1;
+            background: #f8f9fa;
+            border: none;
+            padding: 15px 20px;
+            font-size: 1em;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover {
+            background: #e9ecef;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #2c5aa0;
+            border-bottom: 3px solid #2c5aa0;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: #2c5aa0;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: #1e3a6e;
+        }
+
+        .control-btn.active {
+            background: #5cb85c;
+        }
+
+        .diagram {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        #full-diagram {
+            height: calc(100vh - 250px);
+            min-height: 700px;
+        }
+
+        #classes-diagram {
+            height: 800px;
+        }
+
+        #properties-diagram {
+            height: 900px;
+            overflow: auto;
+        }
+
+        .legend {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .legend h3 {
+            color: #2c5aa0;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-section {
+            margin-bottom: 15px;
+        }
+
+        .legend-section h4 {
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: inline-block;
+            margin-right: 25px;
+            margin-bottom: 10px;
+        }
+
+        .legend-box {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid;
+            vertical-align: middle;
+        }
+
+        .legend-line {
+            display: inline-block;
+            width: 40px;
+            height: 3px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .legend-text {
+            color: #333;
+            font-size: 0.85em;
+            vertical-align: middle;
+        }
+
+        .info-panel {
+            position: fixed;
+            top: 100px;
+            right: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            max-width: 350px;
+            display: none;
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .info-panel.show {
+            display: block;
+        }
+
+        .info-panel h3 {
+            color: #2c5aa0;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info-panel .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .info-panel .close-btn:hover {
+            color: #333;
+        }
+
+        .info-content {
+            margin-top: 15px;
+        }
+
+        .info-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.85em;
+        }
+
+        .info-value {
+            color: #333;
+            margin-top: 3px;
+            font-size: 0.9em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            margin-top: 10px;
+            background: white;
+            table-layout: fixed;
+        }
+
+        th {
+            background: #2c5aa0;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        #classes-table th:nth-child(1),
+        #classes-table td:nth-child(1) {
+            width: 20%;
+        }
+
+        #classes-table th:nth-child(2),
+        #classes-table td:nth-child(2) {
+            width: 15%;
+        }
+
+        #classes-table th:nth-child(3),
+        #classes-table td:nth-child(3) {
+            width: 15%;
+        }
+
+        #classes-table th:nth-child(4),
+        #classes-table td:nth-child(4) {
+            width: 15%;
+        }
+
+        #classes-table th:nth-child(5),
+        #classes-table td:nth-child(5) {
+            width: 35%;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.75em;
+            margin-right: 5px;
+            margin-top: 3px;
+        }
+
+        .badge.functional {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge.transitive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.core {
+            background: #d4e4f7;
+            color: #1e3a6e;
+        }
+
+        .badge.defined {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.subclass {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge.reused {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge.propertychain {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 13px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            max-width: 400px;
+            z-index: 1000;
+            line-height: 1.6;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
+
+        .tooltip strong {
+            color: #5cb85c;
+        }
+
+        .node {
+            cursor: pointer;
+        }
+
+        .node circle {
+            stroke-width: 3px;
+        }
+
+        .node.class circle {
+            fill: #2c5aa0;
+            stroke: #1e3a6e;
+        }
+
+        .node text {
+            font-size: 13px;
+            font-weight: 600;
+            pointer-events: none;
+            fill: #333;
+        }
+
+        .link {
+            fill: none;
+            stroke-width: 2px;
+            marker-end: url(#arrowhead);
+        }
+
+        .link.object-property {
+            stroke: #5cb85c;
+        }
+
+        .link.data-property {
+            stroke: #f0ad4e;
+        }
+
+        .link.functional {
+            stroke-dasharray: 5, 5;
+        }
+
+        .link.transitive {
+            stroke-width: 3px;
+        }
+
+        .property-label {
+            font-size: 12px;
+            fill: #333;
+            font-weight: 600;
+            background: white;
+            padding: 2px 4px;
+        }
+
+        .property-attrs {
+            font-size: 10px;
+            fill: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>EDGAR-FIN 2024 온톨로지 뷰어</h1>
+        <p>SEC EDGAR XBRL 데이터 기반 재무제표 온톨로지 | ODP(Ontology Design Pattern) 기반 개발</p>
+        <p style="font-size: 0.9em; margin-top: 5px; color: #888;">
+            Observation Pattern + Canonicalization Pattern | FIBO·FinRegOnt 재사용
+        </p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-button active" onclick="switchTab('full', this)">통합 온톨로지</button>
+        <button class="tab-button" onclick="switchTab('classes', this)">클래스 계층</button>
+        <button class="tab-button" onclick="switchTab('properties', this)">프로퍼티 관계</button>
+    </div>
+
+    <!-- Tab 1: Full Ontology -->
+    <div id="tab-full" class="tab-content active">
+        <div class="controls">
+            <button class="control-btn" onclick="focusOnObservation()">FinancialObservation 중심</button>
+            <button class="control-btn" onclick="resetView('full')">리셋</button>
+            <button class="control-btn" id="full-physics-btn" onclick="togglePhysics('full', this)">물리 시뮬레이션 (OFF)</button>
+        </div>
+
+        <div id="full-diagram" class="diagram"></div>
+
+        <div class="legend">
+            <h3>범례</h3>
+            <div class="legend-grid">
+                <div class="legend-section">
+                    <h4>노드 유형 (클래스)</h4>
+                    <div class="legend-item">
+                        <span class="legend-box" style="background: #2c5aa0; border-color: #1e3a6e;"></span>
+                        <span class="legend-text">핵심 클래스</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-box" style="background: #5cb85c; border-color: #449d44;"></span>
+                        <span class="legend-text">정의 클래스</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-box" style="background: #5bc0de; border-color: #46b8da;"></span>
+                        <span class="legend-text">서브클래스</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-box" style="background: #f0ad4e; border-color: #ec971f;"></span>
+                        <span class="legend-text">재사용 클래스</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-box" style="background: #d9534f; border-color: #c9302c;"></span>
+                        <span class="legend-text">데이터타입</span>
+                    </div>
+                </div>
+                
+                <div class="legend-section">
+                    <h4>엣지 유형 (관계)</h4>
+                    <div class="legend-item">
+                        <span class="legend-line" style="background: #5cb85c;"></span>
+                        <span class="legend-text">Object Property</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line" style="background: #f0ad4e;"></span>
+                        <span class="legend-text">Data Property</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line" style="background: #999; border-top: 2px dashed #999; background: none;"></span>
+                        <span class="legend-text">subClassOf</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-line" style="background: #9b59b6;"></span>
+                        <span class="legend-text">equivalentClass</span>
+                    </div>
+                </div>
+
+                <div class="legend-section">
+                    <h4>인터랙션</h4>
+                    <div class="legend-text" style="line-height: 1.6;">
+                        • 노드 클릭: 상세 정보 보기<br>
+                        • 노드 드래그: 위치 이동<br>
+                        • 마우스 휠: 줌 인/아웃<br>
+                        • 드래그: 캔버스 이동
+                    </div>
+                </div>
+
+                <div class="legend-section">
+                    <h4>적용 ODP 패턴</h4>
+                    <div class="legend-text" style="line-height: 1.6;">
+                        • <strong>Observation Pattern</strong>: FinancialObservation 중심 구조<br>
+                        • <strong>Canonicalization</strong>: 이질적 XBRL 태그 통합<br>
+                        • <strong>Contextualization</strong>: Period, Currency, AccountingStandard<br>
+                        • <strong>Property Chain</strong>: hasIndustryOfObservation (forEntity ∘ hasIndustry)<br>
+                        • <strong>Key Pattern</strong>: (forEntity, forMetric, hasPeriod, hasCurrency)로 유일성 보장
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Classes -->
+    <div id="tab-classes" class="tab-content">
+        <div class="controls">
+            <button class="control-btn" onclick="resetView('classes')">리셋</button>
+            <button class="control-btn" id="classes-physics-btn" onclick="togglePhysics('classes', this)">물리 시뮬레이션 (OFF)</button>
+        </div>
+
+        <div id="classes-diagram" class="diagram"></div>
+
+        <div class="legend">
+            <h3>범례</h3>
+            <div>
+                <div class="legend-item">
+                    <span class="legend-box" style="background: #2c5aa0; border-color: #1e3a6e;"></span>
+                    <span class="legend-text">핵심 클래스 (Core Classes) - 자체 정의</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-box" style="background: #5cb85c; border-color: #449d44;"></span>
+                    <span class="legend-text">정의 클래스 (Defined Classes) - equivalentClass로 정의, Reasoner 자동 분류</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-box" style="background: #5bc0de; border-color: #46b8da;"></span>
+                    <span class="legend-text">서브클래스 (Subclasses) - subClassOf 관계</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-box" style="background: #f0ad4e; border-color: #ec971f;"></span>
+                    <span class="legend-text">재사용 클래스 (Reused) - FIBO/FinRegOnt 재사용</span>
+                </div>
+            </div>
+            <div style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-left: 3px solid #2c5aa0;">
+                <strong>ODP 기반 설계</strong>: CQ(Competency Question) 기반 용어 추출 → 클래스/프로퍼티 정의 → 제약조건 형식화
+            </div>
+        </div>
+
+        <div class="legend">
+            <h3>클래스 상세 정보</h3>
+            <table id="classes-table">
+                <thead>
+                    <tr>
+                        <th>클래스명</th>
+                        <th>유형</th>
+                        <th>관계</th>
+                        <th>출처/근거</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tab 3: Properties -->
+    <div id="tab-properties" class="tab-content">
+        <div class="controls">
+            <button class="control-btn" onclick="resetView('properties')">리셋</button>
+            <button class="control-btn" id="properties-physics-btn" onclick="togglePhysics('properties', this)">물리 시뮬레이션 (ON)</button>
+        </div>
+
+        <div id="properties-diagram" class="diagram"></div>
+
+        <div class="legend">
+            <h3>범례</h3>
+            
+            <div class="legend-section">
+                <h4>프로퍼티 유형</h4>
+                <div class="legend-item">
+                    <span class="legend-line" style="background: #5cb85c;"></span>
+                    <span class="legend-text">Object Property - 클래스 간 관계</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-line" style="background: #f0ad4e;"></span>
+                    <span class="legend-text">Data Property - 리터럴 값 연결</span>
+                </div>
+            </div>
+
+            <div class="legend-section">
+                <h4>프로퍼티 특성</h4>
+                <div class="legend-item">
+                    <span class="legend-line" style="background: #5cb85c; border-top: 3px dashed #5cb85c; background: none;"></span>
+                    <span class="legend-text">Functional - 1:1 관계 (각 관측값마다 정확히 하나)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-line" style="background: #5cb85c; height: 4px;"></span>
+                    <span class="legend-text">Transitive - 추이적 관계 (A→B, B→C ⟹ A→C)</span>
+                </div>
+                <div class="legend-item">
+                    <span style="margin-right: 8px;">⛓️</span>
+                    <span class="legend-text">PropertyChain - 프로퍼티 체인 (복합 프로퍼티)</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-left: 3px solid #2c5aa0;">
+                <strong>CQ 기반 프로퍼티 도출</strong>: 명사구 → Domain/Range, 동사구 → Property 이름, 자연어 제약 → Characteristics
+            </div>
+        </div>
+
+        <div class="legend">
+            <h3>Object Properties 상세</h3>
+            <table id="object-properties-table">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Domain</th>
+                        <th>Range</th>
+                        <th>특성</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="legend">
+            <h3>Data Properties 상세</h3>
+            <table id="data-properties-table">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Domain</th>
+                        <th>Range</th>
+                        <th>특성</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="info-panel" id="info-panel">
+        <button class="close-btn" onclick="closeInfo()">×</button>
+        <h3 id="info-title">정보</h3>
+        <div class="info-content" id="info-content"></div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // ==================== Global Variables ====================
+        let fullNetwork, classesNetwork, propertiesSimulation;
+        let fullPhysicsEnabled = false;
+        let classesPhysicsEnabled = false;
+        let propertiesPhysicsEnabled = true;
+        let propertiesNodes, propertiesNodeArray;
+
+        // ==================== Shared Data ====================
+        const fullOntologyNodes = [
+            { id: 'FinancialObservation', label: 'Financial\nObservation', group: 'core', 
+              description: '특정 기업, 지표, 기간 및 통화에 대한 정량적 관측값. Observation Pattern 적용. CQ 전체 구조에서 도출', level: 1 },
+            { id: 'CanonicalMetric', label: 'Canonical\nMetric', group: 'core',
+              description: '정규화된 지표 어휘 (Revenue, OperatingIncome 등). 이질적 XBRL 태그 통합. Canonicalization Pattern', level: 2 },
+            { id: 'XbrlConcept', label: 'XBRL\nConcept', group: 'core',
+              description: '소스 XBRL 한정 개념 (예: us-gaap:Revenues). "tagged as" 자연어에서 도출', level: 2 },
+            { id: 'TagMapping', label: 'Tag\nMapping', group: 'core',
+              description: 'XBRL 개념을 CanonicalMetric으로 매핑. Data Normalization Pattern', level: 3 },
+            { id: 'Period', label: 'Period', group: 'core',
+              description: '관측값의 시간적 맥락. CQ "in FY2024" 시간 표현에서 추출. Contextualization Pattern', level: 2 },
+            { id: 'Currency', label: 'Currency', group: 'core',
+              description: '화폐 통화. CQ "in USD" 화폐 명시에서 도출', level: 2 },
+            { id: 'AccountingStandard', label: 'Accounting\nStandard', group: 'core',
+              description: '회계 기준 (US-GAAP, IFRS). "under US-GAAP" 자연어에서 추출', level: 2 },
+            { id: 'Industry', label: 'Industry', group: 'core',
+              description: '산업 분류. CQ "for banks", "for REITs" 업종 한정 문장에서 도출', level: 2 },
+            { id: 'DurationPeriod', label: 'Duration\nPeriod', group: 'subclass',
+              description: '시작일과 종료일이 있는 기간 (FY 2024). InstantPeriod와 disjoint', level: 3 },
+            { id: 'InstantPeriod', label: 'Instant\nPeriod', group: 'subclass',
+              description: '특정 시점 (재무상태표 날짜). DurationPeriod와 disjoint', level: 3 },
+            { id: 'LegalEntity', label: 'Legal\nEntity', group: 'reused',
+              description: '법인. fibo-be:LegalEntity 재사용. CQ [companies] 명사구에서 도출', level: 2 },
+            { id: 'RegulatoryFiling', label: 'Regulatory\nFiling', group: 'reused',
+              description: 'SEC 제출 문서 (10-K, 20-F). fro:RegulatoryFiling 재사용', level: 3 },
+            { id: 'RevenueObservation', label: 'Revenue\nObservation', group: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value Revenue). Reasoner 자동 분류', level: 2 },
+            { id: 'OperatingIncomeObservation', label: 'Operating Income\nObservation', group: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value OperatingIncome). Reasoner 자동 분류', level: 2 },
+            { id: 'OperatingComparableObservation', label: 'Operating Comparable\nObservation', group: 'defined',
+              description: 'FinancialObservation ⊓ (normalizedAs value OperatingIncomeComparable). 기업 간 비교 가능한 정규화된 영업이익', level: 2 },
+            { id: 'NetIncomeObservation', label: 'Net Income\nObservation', group: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value NetIncome). Reasoner 자동 분류', level: 2 },
+            { id: 'CFOObservation', label: 'CFO\nObservation', group: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value CFO). 영업활동 현금흐름', level: 2 },
+            { id: 'CashAndCashEquivalentsObservation', label: 'Cash&CashEq\nObservation', group: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value CashAndCashEquivalents). 재무상태표 현금성 자산', level: 2 },
+            { id: 'AssetsObservation', label: 'Assets\nObservation', group: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value Assets). Reasoner 자동 분류', level: 2 },
+            { id: 'LiabilitiesObservation', label: 'Liabilities\nObservation', group: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value Liabilities). Reasoner 자동 분류', level: 2 },
+            { id: 'EquityObservation', label: 'Equity\nObservation', group: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value Equity). Reasoner 자동 분류', level: 2 },
+            { id: 'xsd:decimal', label: 'xsd:decimal', group: 'datatype', level: 3 },
+            { id: 'xsd:date', label: 'xsd:date', group: 'datatype', level: 3 },
+            { id: 'xsd:gYear', label: 'xsd:gYear', group: 'datatype', level: 3 },
+            { id: 'xsd:string', label: 'xsd:string', group: 'datatype', level: 3 }
+        ];
+
+        const fullOntologyEdges = [
+            { from: 'FinancialObservation', to: 'LegalEntity', label: 'forEntity', 
+              type: 'object', characteristics: ['Functional'], color: '#5cb85c' },
+            { from: 'FinancialObservation', to: 'CanonicalMetric', label: 'forMetric', 
+              type: 'object', characteristics: ['Functional'], color: '#5cb85c' },
+            { from: 'FinancialObservation', to: 'Period', label: 'hasPeriod', 
+              type: 'object', characteristics: ['Functional'], color: '#5cb85c' },
+            { from: 'FinancialObservation', to: 'Currency', label: 'hasCurrency', 
+              type: 'object', characteristics: ['Functional'], color: '#5cb85c' },
+            { from: 'FinancialObservation', to: 'AccountingStandard', label: 'usesAccounting\nStandard', 
+              type: 'object', characteristics: ['Functional'], color: '#5cb85c' },
+            { from: 'FinancialObservation', to: 'XbrlConcept', label: 'basedOnConcept', 
+              type: 'object', characteristics: [], color: '#5cb85c' },
+            { from: 'FinancialObservation', to: 'CanonicalMetric', label: 'normalizedAs', 
+              type: 'object', characteristics: ['Functional'], color: '#5cb85c' },
+            { from: 'FinancialObservation', to: 'FinancialObservation', label: 'computedFrom', 
+              type: 'object', characteristics: ['Transitive'], color: '#5cb85c' },
+            { from: 'FinancialObservation', to: 'Industry', label: 'hasIndustryOf\nObservation', 
+              type: 'object', characteristics: ['PropertyChain'], color: '#5cb85c' },
+            { from: 'FinancialObservation', to: 'RegulatoryFiling', label: 'hasFiling', 
+              type: 'object', characteristics: [], color: '#5cb85c' },
+            { from: 'LegalEntity', to: 'Industry', label: 'hasIndustry', 
+              type: 'object', characteristics: [], color: '#5cb85c' },
+            { from: 'TagMapping', to: 'XbrlConcept', label: 'mapsFrom', 
+              type: 'object', characteristics: ['Functional'], color: '#5cb85c' },
+            { from: 'TagMapping', to: 'CanonicalMetric', label: 'mapsTo', 
+              type: 'object', characteristics: ['Functional'], color: '#5cb85c' },
+            { from: 'FinancialObservation', to: 'xsd:decimal', label: 'hasValue', 
+              type: 'data', characteristics: ['Functional'], color: '#f0ad4e', dashes: false },
+            { from: 'FinancialObservation', to: 'xsd:string', label: 'hasSourceType', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'FinancialObservation', to: 'xsd:decimal', label: 'hasConfidence', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'FinancialObservation', to: 'xsd:string', label: 'hasReason', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'LegalEntity', to: 'xsd:string', label: 'hasCIK', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'LegalEntity', to: 'xsd:string', label: 'hasSymbol', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'LegalEntity', to: 'xsd:string', label: 'hasName', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'Period', to: 'xsd:date', label: 'periodStart', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'Period', to: 'xsd:date', label: 'periodEnd', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'Period', to: 'xsd:gYear', label: 'fiscalYear', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'Period', to: 'xsd:string', label: 'fiscalYearEnd', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'RegulatoryFiling', to: 'xsd:string', label: 'hasFormType', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'RegulatoryFiling', to: 'xsd:string', label: 'hasAccessionNumber', 
+              type: 'data', characteristics: [], color: '#f0ad4e', dashes: false },
+            { from: 'DurationPeriod', to: 'Period', label: 'subClassOf', 
+              type: 'subclass', color: '#999', dashes: true },
+            { from: 'InstantPeriod', to: 'Period', label: 'subClassOf', 
+              type: 'subclass', color: '#999', dashes: true },
+            { from: 'RevenueObservation', to: 'FinancialObservation', label: 'equivalentClass', 
+              type: 'equivalent', color: '#9b59b6', dashes: [5, 5] },
+            { from: 'OperatingIncomeObservation', to: 'FinancialObservation', label: 'equivalentClass', 
+              type: 'equivalent', color: '#9b59b6', dashes: [5, 5] },
+            { from: 'OperatingComparableObservation', to: 'FinancialObservation', label: 'equivalentClass', 
+              type: 'equivalent', color: '#9b59b6', dashes: [5, 5] },
+            { from: 'NetIncomeObservation', to: 'FinancialObservation', label: 'equivalentClass', 
+              type: 'equivalent', color: '#9b59b6', dashes: [5, 5] },
+            { from: 'CFOObservation', to: 'FinancialObservation', label: 'equivalentClass', 
+              type: 'equivalent', color: '#9b59b6', dashes: [5, 5] },
+            { from: 'CashAndCashEquivalentsObservation', to: 'FinancialObservation', label: 'equivalentClass', 
+              type: 'equivalent', color: '#9b59b6', dashes: [5, 5] },
+            { from: 'AssetsObservation', to: 'FinancialObservation', label: 'equivalentClass', 
+              type: 'equivalent', color: '#9b59b6', dashes: [5, 5] },
+            { from: 'LiabilitiesObservation', to: 'FinancialObservation', label: 'equivalentClass', 
+              type: 'equivalent', color: '#9b59b6', dashes: [5, 5] },
+            { from: 'EquityObservation', to: 'FinancialObservation', label: 'equivalentClass', 
+              type: 'equivalent', color: '#9b59b6', dashes: [5, 5] }
+        ];
+
+        const classData = [
+            { id: 'FinancialObservation', label: 'Financial\nObservation', type: 'core', 
+              description: '특정 기업, 지표, 기간 및 통화에 대한 정량적 관측값. Observation Pattern 적용. CQ: "Which companies reported Revenue in FY2024?"의 전체 구조에서 도출', 
+              relation: '-', source: '자체 정의 (Observation Pattern)' },
+            { id: 'CanonicalMetric', label: 'Canonical\nMetric', type: 'core',
+              description: '정규화된 지표 어휘 (Revenue, OperatingIncome, NetIncome, CFO, Assets 등). 이질적 XBRL 태그를 표준화. CQ: [Revenue], [Operating Income] 등 명사구에서 추출', 
+              relation: '-', source: '자체 정의 (Canonicalization)' },
+            { id: 'XbrlConcept', label: 'XBRL\nConcept', type: 'core',
+              description: '소스 XBRL 한정 개념 (예: us-gaap:Revenues, ifrs-full:ProfitLoss). 자연어: "tagged as", "concept", "XBRL element"에서 도출', 
+              relation: '-', source: '자체 정의' },
+            { id: 'TagMapping', label: 'Tag\nMapping', type: 'core',
+              description: 'XBRL 개념을 CanonicalMetric으로 매핑하는 객체. 자연어: "maps from", "corresponds to" 구문에서 도출', 
+              relation: '-', source: '자체 정의 (Data Normalization Pattern)' },
+            { id: 'Period', label: 'Period', type: 'core',
+              description: '관측값의 시간적 맥락 (기간 또는 시점). CQ: "in FY2024", "at 2024-12-31" 시간 표현에서 추출', 
+              relation: '-', source: '자체 정의 (Contextualization Pattern)' },
+            { id: 'Currency', label: 'Currency', type: 'core',
+              description: '화폐 통화 (예: USD, EUR). CQ: "in USD" 화폐 명시에서 추출', 
+              relation: '-', source: '자체 정의 (Contextualization)' },
+            { id: 'AccountingStandard', label: 'Accounting\nStandard', type: 'core',
+              description: '회계 기준 (US-GAAP, IFRS). 자연어: "under US-GAAP / IFRS" 문장에서 추출', 
+              relation: '-', source: '자체 정의 (Contextualization)' },
+            { id: 'Industry', label: 'Industry', type: 'core',
+              description: '산업 분류 (Banking, REITs, Utilities 등). CQ: "for banks", "for REITs" 등 업종 한정 문장에서 추출', 
+              relation: '-', source: '자체 정의' },
+            { id: 'DurationPeriod', label: 'Duration\nPeriod', type: 'subclass',
+              description: '시작일과 종료일이 있는 기간 (예: FY 2024). InstantPeriod와 disjoint. 자연어: "from Jan 1 to Dec 31"에서 도출', 
+              relation: 'Period의 subClassOf', source: '자체 정의' },
+            { id: 'InstantPeriod', label: 'Instant\nPeriod', type: 'subclass',
+              description: '특정 시점 (종료일만 있음), 예: 재무상태표 날짜. DurationPeriod와 disjoint. 자연어: "at end of FY2024"에서 도출', 
+              relation: 'Period의 subClassOf', source: '자체 정의' },
+            { id: 'LegalEntity', label: 'Legal\nEntity', type: 'reused',
+              description: '법인으로서의 회사/발행자. fibo-be:LegalEntity 재사용. CQ: "Which companies..." [companies] 명사구에서 도출', 
+              relation: '-', source: 'FIBO 재사용' },
+            { id: 'RegulatoryFiling', label: 'Regulatory\nFiling', type: 'reused',
+              description: 'SEC 제출 문서 (10-K, 20-F 등). fro:RegulatoryFiling 재사용. CQ: "In which filings..." [filings] 명사구에서 도출', 
+              relation: '-', source: 'FinRegOnt 재사용' },
+            { id: 'RevenueObservation', label: 'Revenue\nObservation', type: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value Revenue). Reasoner가 자동 분류. CQ: "Which observations are revenues?"에서 도출', 
+              relation: 'FinancialObservation의 equivalentClass', source: '정의 클래스 (Defined Class)' },
+            { id: 'OperatingIncomeObservation', label: 'Operating Income\nObservation', type: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value OperatingIncome). Reasoner가 자동 분류', 
+              relation: 'FinancialObservation의 equivalentClass', source: '정의 클래스' },
+            { id: 'OperatingComparableObservation', label: 'Operating Comparable\nObservation', type: 'defined',
+              description: 'FinancialObservation ⊓ (normalizedAs value OperatingIncomeComparable). 기업 간 비교 가능한 정규화된 영업이익. CQ: "Comparable Operating Income across firms"에서 도출', 
+              relation: 'FinancialObservation의 equivalentClass', source: '정의 클래스' },
+            { id: 'NetIncomeObservation', label: 'Net Income\nObservation', type: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value NetIncome). Reasoner가 자동 분류', 
+              relation: 'FinancialObservation의 equivalentClass', source: '정의 클래스' },
+            { id: 'CFOObservation', label: 'CFO\nObservation', type: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value CFO). 영업활동 현금흐름. CQ: "Net Cash Provided by Operating Activities"에서 도출', 
+              relation: 'FinancialObservation의 equivalentClass', source: '정의 클래스' },
+            { id: 'CashAndCashEquivalentsObservation', label: 'Cash&CashEq\nObservation', type: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value CashAndCashEquivalents). 재무상태표 현금성 자산. CQ: "total cash at end of FY2024"에서 도출', 
+              relation: 'FinancialObservation의 equivalentClass', source: '정의 클래스' },
+            { id: 'AssetsObservation', label: 'Assets\nObservation', type: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value Assets). Reasoner가 자동 분류', 
+              relation: 'FinancialObservation의 equivalentClass', source: '정의 클래스' },
+            { id: 'LiabilitiesObservation', label: 'Liabilities\nObservation', type: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value Liabilities). Reasoner가 자동 분류', 
+              relation: 'FinancialObservation의 equivalentClass', source: '정의 클래스' },
+            { id: 'EquityObservation', label: 'Equity\nObservation', type: 'defined',
+              description: 'FinancialObservation ⊓ (forMetric value Equity). Reasoner가 자동 분류', 
+              relation: 'FinancialObservation의 equivalentClass', source: '정의 클래스' },
+        ];
+
+        const classEdges = [
+            { from: 'Period', to: 'DurationPeriod', label: 'subClassOf', type: 'subclass' },
+            { from: 'Period', to: 'InstantPeriod', label: 'subClassOf', type: 'subclass' },
+            { from: 'FinancialObservation', to: 'RevenueObservation', label: 'equivalentClass', type: 'equivalent' },
+            { from: 'FinancialObservation', to: 'OperatingIncomeObservation', label: 'equivalentClass', type: 'equivalent' },
+            { from: 'FinancialObservation', to: 'OperatingComparableObservation', label: 'equivalentClass', type: 'equivalent' },
+            { from: 'FinancialObservation', to: 'NetIncomeObservation', label: 'equivalentClass', type: 'equivalent' },
+            { from: 'FinancialObservation', to: 'CFOObservation', label: 'equivalentClass', type: 'equivalent' },
+            { from: 'FinancialObservation', to: 'CashAndCashEquivalentsObservation', label: 'equivalentClass', type: 'equivalent' },
+            { from: 'FinancialObservation', to: 'AssetsObservation', label: 'equivalentClass', type: 'equivalent' },
+            { from: 'FinancialObservation', to: 'LiabilitiesObservation', label: 'equivalentClass', type: 'equivalent' },
+            { from: 'FinancialObservation', to: 'EquityObservation', label: 'equivalentClass', type: 'equivalent' },
+        ];
+
+        const objectProperties = [
+            { property: 'forEntity', domain: 'FinancialObservation', range: 'LegalEntity',
+              characteristics: ['Functional'], description: '관측값을 설명하는 회사/법인에 연결. CQ: "Which companies reported Revenue?"의 주어 [companies]와 Observation 주체 연결' },
+            { property: 'forMetric', domain: 'FinancialObservation', range: 'CanonicalMetric',
+              characteristics: ['Functional'], description: '관측값을 정규화된 지표에 연결. CQ: "reported [Revenue]"의 목적어 [Revenue]. Canonicalization Pattern 적용' },
+            { property: 'hasPeriod', domain: 'FinancialObservation', range: 'Period',
+              characteristics: ['Functional'], description: '관측값을 시간 기간에 연결. CQ: "in [FY2024]" 시간구 표현에서 도출. Contextualization Pattern' },
+            { property: 'hasCurrency', domain: 'FinancialObservation', range: 'Currency',
+              characteristics: ['Functional'], description: '관측값을 통화에 연결. CQ: "in [USD]" 화폐 명시에서 도출' },
+            { property: 'usesAccountingStandard', domain: 'FinancialObservation', range: 'AccountingStandard',
+              characteristics: ['Functional'], description: '관측값을 회계 기준에 연결. 자연어: "under [US-GAAP/IFRS]"에서 도출' },
+            { property: 'basedOnConcept', domain: 'FinancialObservation', range: 'XbrlConcept',
+              characteristics: [], description: '관측값을 소스 XBRL 개념에 연결. 자연어: "tagged as [us-gaap:Revenue]" 구문에서 도출' },
+            { property: 'normalizedAs', domain: 'FinancialObservation', range: 'CanonicalMetric',
+              characteristics: ['Functional'], description: '관측값을 비교 가능한 정규화 지표에 연결. 자연어: "normalized to Revenue" 구문에서 도출' },
+            { property: 'computedFrom', domain: 'FinancialObservation', range: 'FinancialObservation',
+              characteristics: ['Transitive'], description: '계산/파생된 관측값을 소스에 연결. 자연어: "Operating Income derived from Revenue – Expenses" 구조에서 도출. Transitive 속성으로 추론 가능' },
+            { property: 'hasIndustry', domain: 'LegalEntity', range: 'Industry',
+              characteristics: [], description: '회사를 산업 분류에 연결. CQ: "for banks", "for REITs" 등 업종 한정 문장에서 도출' },
+            { property: 'hasIndustryOfObservation', domain: 'FinancialObservation', range: 'Industry',
+              characteristics: ['PropertyChain'], description: '프로퍼티 체인: forEntity ∘ hasIndustry. Property Chain Pattern 적용. 관측값이 회사의 산업 자동 상속' },
+            { property: 'hasFiling', domain: 'FinancialObservation', range: 'RegulatoryFiling',
+              characteristics: [], description: '관측값을 SEC 제출 문서에 연결' },
+            { property: 'mapsFrom', domain: 'TagMapping', range: 'XbrlConcept',
+              characteristics: ['Functional'], description: '매핑을 소스 XBRL 개념에 연결. 자연어: "maps from" 표현에서 도출' },
+            { property: 'mapsTo', domain: 'TagMapping', range: 'CanonicalMetric',
+              characteristics: ['Functional'], description: '매핑을 대상 정규화 지표에 연결. 자연어: "corresponds to" 표현에서 도출' }
+        ];
+
+        const dataProperties = [
+            { property: 'hasValue', domain: 'FinancialObservation', range: 'xsd:decimal',
+              characteristics: ['Functional'], description: '관측값의 숫자 값. CQ: "What was the value of Revenue?"의 [value] 명사구에서 도출' },
+            { property: 'hasSourceType', domain: 'FinancialObservation', range: 'xsd:string',
+              characteristics: [], description: '소스 타입 (annual, composite, derived, instant 등)' },
+            { property: 'hasConfidence', domain: 'FinancialObservation', range: 'xsd:decimal',
+              characteristics: [], description: '선택된 태그의 신뢰도 점수 (0.0-1.0)' },
+            { property: 'hasReason', domain: 'FinancialObservation', range: 'xsd:string',
+              characteristics: [], description: '태그 선택 이유 설명' },
+            { property: 'hasCompositeName', domain: 'FinancialObservation', range: 'xsd:string',
+              characteristics: [], description: 'Composite 계산 이름 (해당되는 경우)' },
+            { property: 'hasCIK', domain: 'LegalEntity', range: 'xsd:string',
+              characteristics: [], description: 'SEC Central Index Key (CIK) 번호' },
+            { property: 'hasSymbol', domain: 'LegalEntity', range: 'xsd:string',
+              characteristics: [], description: '주식 티커 심볼' },
+            { property: 'hasName', domain: 'LegalEntity', range: 'xsd:string',
+              characteristics: [], description: '회사명' },
+            { property: 'periodStart', domain: 'Period', range: 'xsd:date',
+              characteristics: [], description: '기간의 시작일 (DurationPeriod용). 자연어: "from Jan 1" 시간 표현에서 도출' },
+            { property: 'periodEnd', domain: 'Period', range: 'xsd:date',
+              characteristics: [], description: '기간의 종료일 (Duration/Instant 공통). 자연어: "to Dec 31" 시간 표현에서 도출' },
+            { property: 'fiscalYear', domain: 'Period', range: 'xsd:gYear',
+              characteristics: [], description: '기간의 회계연도. CQ: "FY2024" 표현에서 도출' },
+            { property: 'fiscalYearEnd', domain: 'Period', range: 'xsd:string',
+              characteristics: [], description: '회계연도 종료일 (MMDD 형식, 예: "1231")' },
+            { property: 'hasFormType', domain: 'RegulatoryFiling', range: 'xsd:string',
+              characteristics: [], description: 'SEC 제출 문서 형태 (10-K, 20-F 등)' },
+            { property: 'hasAccessionNumber', domain: 'RegulatoryFiling', range: 'xsd:string',
+              characteristics: [], description: 'SEC 접근 번호 (accession number)' }
+        ];
+
+        // ==================== Tab Switching ====================
+        function switchTab(tabName, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            if (btnElement) {
+                btnElement.classList.add('active');
+            } else {
+                // Fallback: find button by tab name
+                const buttons = document.querySelectorAll('.tab-button');
+                buttons.forEach(btn => {
+                    if (btn.textContent.trim() === (tabName === 'full' ? '통합 온톨로지' : tabName === 'classes' ? '클래스 계층' : '프로퍼티 관계')) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            closeInfo();
+
+            if (tabName === 'full' && !fullNetwork) {
+                initFullOntology();
+            } else if (tabName === 'classes' && !classesNetwork) {
+                initClassesOntology();
+            } else if (tabName === 'properties' && !propertiesSimulation) {
+                initPropertiesOntology();
+            }
+        }
+
+        function closeInfo() {
+            document.getElementById('info-panel').classList.remove('show');
+        }
+
+        // ==================== Full Ontology Visualization ====================
+        function initFullOntology() {
+            const visOptions = {
+                nodes: {
+                    shape: 'box',
+                    margin: 10,
+                    widthConstraint: { maximum: 150 },
+                    font: { size: 14, face: 'Segoe UI', color: '#ffffff', bold: { color: '#ffffff' } },
+                    borderWidth: 3,
+                    shadow: true
+                },
+                edges: {
+                    width: 2,
+                    arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+                    font: { size: 11, face: 'Segoe UI', align: 'middle', background: 'white', strokeWidth: 0 },
+                    smooth: { type: 'cubicBezier', forceDirection: 'vertical', roundness: 0.4 },
+                    selectionWidth: 3
+                },
+                groups: {
+                    core: { color: { background: '#2c5aa0', border: '#1e3a6e', highlight: { background: '#1e3a6e', border: '#0d1f3d' } } },
+                    defined: { color: { background: '#5cb85c', border: '#449d44', highlight: { background: '#449d44', border: '#357a35' } } },
+                    subclass: { color: { background: '#5bc0de', border: '#46b8da', highlight: { background: '#46b8da', border: '#2aabd2' } } },
+                    reused: { color: { background: '#f0ad4e', border: '#ec971f', highlight: { background: '#ec971f', border: '#d58512' } } },
+                    datatype: { color: { background: '#d9534f', border: '#c9302c', highlight: { background: '#c9302c', border: '#ac2925' } } }
+                },
+                layout: {
+                    hierarchical: { enabled: true, direction: 'UD', sortMethod: 'directed', levelSeparation: 200, nodeSpacing: 100, treeSpacing: 150 }
+                },
+                physics: { enabled: false },
+                interaction: { hover: true, navigationButtons: true, keyboard: true, zoomView: false }
+            };
+
+            const container = document.getElementById('full-diagram');
+            const data = { nodes: fullOntologyNodes, edges: fullOntologyEdges };
+            fullNetwork = new vis.Network(container, data, visOptions);
+
+            fullNetwork.on('click', function(params) {
+                if (params.nodes.length > 0) {
+                    showNodeInfo(params.nodes[0], fullOntologyNodes, fullOntologyEdges);
+                }
+            });
+
+            fullNetwork.once('stabilizationIterationsDone', function() {
+                fullNetwork.setOptions({ physics: false });
+            });
+        }
+
+        function showNodeInfo(nodeId, nodes, edges) {
+            const node = nodes.find(n => n.id === nodeId);
+            if (!node) return;
+
+            const panel = document.getElementById('info-panel');
+            const title = document.getElementById('info-title');
+            const content = document.getElementById('info-content');
+
+            title.textContent = node.label.replace(/\n/g, ' ');
+
+            let html = `<div class="info-item">
+                <div class="info-label">유형</div>
+                <div class="info-value">${getGroupLabel(node.group || node.type)}</div>
+            </div>`;
+
+            html += `<div class="info-item">
+                <div class="info-label">설명</div>
+                <div class="info-value">${node.description}</div>
+            </div>`;
+
+            const incomingEdges = edges.filter(e => e.to === nodeId);
+            const outgoingEdges = edges.filter(e => e.from === nodeId);
+
+            if (outgoingEdges.length > 0) {
+                html += `<div class="info-item">
+                    <div class="info-label">나가는 프로퍼티</div>
+                    <div class="info-value">`;
+                outgoingEdges.forEach(e => {
+                    html += `<div style="margin-bottom: 5px;">
+                        <strong>${e.label.replace(/\n/g, ' ')}</strong> → ${e.to}`;
+                    if (e.characteristics && e.characteristics.length > 0) {
+                        e.characteristics.forEach(c => {
+                            html += ` <span class="badge ${c.toLowerCase()}">${c}</span>`;
+                        });
+                    }
+                    html += `</div>`;
+                });
+                html += `</div></div>`;
+            }
+
+            if (incomingEdges.length > 0) {
+                html += `<div class="info-item">
+                    <div class="info-label">들어오는 프로퍼티</div>
+                    <div class="info-value">`;
+                incomingEdges.forEach(e => {
+                    html += `<div style="margin-bottom: 5px;">${e.from} → <strong>${e.label.replace(/\n/g, ' ')}</strong></div>`;
+                });
+                html += `</div></div>`;
+            }
+
+            content.innerHTML = html;
+            panel.classList.add('show');
+        }
+
+        function getGroupLabel(group) {
+            const labels = {
+                'core': '핵심 클래스',
+                'defined': '정의 클래스 (equivalentClass)',
+                'subclass': '서브클래스',
+                'reused': '재사용 클래스',
+                'datatype': '데이터타입'
+            };
+            return labels[group] || group;
+        }
+
+        function focusOnObservation() {
+            if (fullNetwork) {
+                fullNetwork.focus('FinancialObservation', {
+                    scale: 1.2,
+                    animation: { duration: 1000, easingFunction: 'easeInOutQuad' }
+                });
+                fullNetwork.selectNodes(['FinancialObservation']);
+            }
+        }
+
+        // ==================== Classes Ontology Visualization ====================
+        function initClassesOntology() {
+            const visOptions = {
+                nodes: {
+                    shape: 'box',
+                    margin: 10,
+                    widthConstraint: { maximum: 180 },
+                    font: { size: 13, face: 'Segoe UI', color: '#ffffff', bold: { color: '#ffffff' } },
+                    borderWidth: 3,
+                    shadow: true
+                },
+                edges: {
+                    width: 2,
+                    arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+                    font: { size: 11, face: 'Segoe UI', align: 'middle', background: 'white', strokeWidth: 0 },
+                    smooth: { type: 'cubicBezier', forceDirection: 'vertical', roundness: 0.4 },
+                    color: { color: '#999', highlight: '#666' },
+                    dashes: function(edge) { return edge.type === 'subclass'; }
+                },
+                groups: {
+                    core: { color: { background: '#2c5aa0', border: '#1e3a6e', highlight: { background: '#1e3a6e', border: '#0d1f3d' } } },
+                    defined: { color: { background: '#5cb85c', border: '#449d44', highlight: { background: '#449d44', border: '#357a35' } } },
+                    subclass: { color: { background: '#5bc0de', border: '#46b8da', highlight: { background: '#46b8da', border: '#2aabd2' } } },
+                    reused: { color: { background: '#f0ad4e', border: '#ec971f', highlight: { background: '#ec971f', border: '#d58512' } } }
+                },
+                layout: {
+                    hierarchical: { enabled: true, direction: 'UD', sortMethod: 'directed', levelSeparation: 150, nodeSpacing: 120, treeSpacing: 150 }
+                },
+                physics: { enabled: false },
+                interaction: { hover: true, navigationButtons: true, keyboard: true, zoomView: false }
+            };
+
+            const nodes = classData.map(c => ({
+                id: c.id,
+                label: c.label,
+                group: c.type,
+                title: `<b>${c.id}</b><br/>${c.description}`
+            }));
+
+            const container = document.getElementById('classes-diagram');
+            const data = { nodes: nodes, edges: classEdges };
+            classesNetwork = new vis.Network(container, data, visOptions);
+
+            classesNetwork.once('stabilizationIterationsDone', function() {
+                classesNetwork.setOptions({ physics: false });
+            });
+
+            // Populate table
+            const table = document.getElementById('classes-table').getElementsByTagName('tbody')[0];
+            table.innerHTML = '';
+            classData.forEach(cls => {
+                const row = table.insertRow();
+                row.insertCell(0).innerHTML = `<strong>${cls.id}</strong>`;
+                
+                let typeLabel = '', typeClass = '';
+                switch(cls.type) {
+                    case 'core': typeLabel = '핵심 클래스'; typeClass = 'core'; break;
+                    case 'defined': typeLabel = '정의 클래스'; typeClass = 'defined'; break;
+                    case 'subclass': typeLabel = '서브클래스'; typeClass = 'subclass'; break;
+                    case 'reused': typeLabel = '재사용 클래스'; typeClass = 'reused'; break;
+                }
+                row.insertCell(1).innerHTML = `<span class="badge ${typeClass}">${typeLabel}</span>`;
+                row.insertCell(2).textContent = cls.relation;
+                row.insertCell(3).textContent = cls.source;
+                row.insertCell(4).textContent = cls.description;
+            });
+        }
+
+        // ==================== Properties Ontology Visualization ====================
+        function initPropertiesOntology() {
+            propertiesNodes = new Map();
+            const links = [];
+
+            function addNode(name) {
+                if (!propertiesNodes.has(name)) {
+                    propertiesNodes.set(name, { id: name, label: name, type: 'class' });
+                }
+            }
+
+            objectProperties.forEach(prop => {
+                addNode(prop.domain);
+                addNode(prop.range);
+                links.push({
+                    source: prop.domain,
+                    target: prop.range,
+                    property: prop.property,
+                    type: 'object-property',
+                    characteristics: prop.characteristics,
+                    description: prop.description
+                });
+            });
+
+            dataProperties.forEach(prop => {
+                addNode(prop.domain);
+                addNode(prop.range);
+                links.push({
+                    source: prop.domain,
+                    target: prop.range,
+                    property: prop.property,
+                    type: 'data-property',
+                    characteristics: prop.characteristics,
+                    description: prop.description
+                });
+            });
+
+            propertiesNodeArray = Array.from(propertiesNodes.values());
+
+            const width = window.innerWidth - 80;
+            const height = 900;
+
+            const svg = d3.select('#properties-diagram')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height);
+
+            svg.append('defs').selectAll('marker')
+                .data(['arrowhead'])
+                .enter().append('marker')
+                .attr('id', d => d)
+                .attr('viewBox', '0 -5 10 10')
+                .attr('refX', 25)
+                .attr('refY', 0)
+                .attr('markerWidth', 6)
+                .attr('markerHeight', 6)
+                .attr('orient', 'auto')
+                .append('path')
+                .attr('d', 'M0,-5L10,0L0,5')
+                .attr('fill', '#999');
+
+            propertiesSimulation = d3.forceSimulation(propertiesNodeArray)
+                .force('link', d3.forceLink(links).id(d => d.id).distance(200))
+                .force('charge', d3.forceManyBody().strength(-1000))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(90).strength(1))
+                .force('x', d3.forceX(width / 2).strength(0.05))
+                .force('y', d3.forceY(height / 2).strength(0.05));
+
+            const linkElements = svg.append('g')
+                .selectAll('g')
+                .data(links)
+                .enter().append('g');
+
+            const linkPaths = linkElements.append('path')
+                .attr('class', d => {
+                    let classes = ['link', d.type];
+                    if (d.characteristics.includes('Functional')) classes.push('functional');
+                    if (d.characteristics.includes('Transitive')) classes.push('transitive');
+                    return classes.join(' ');
+                });
+
+            const linkLabels = linkElements.append('text')
+                .attr('class', 'property-label')
+                .attr('text-anchor', 'middle')
+                .attr('dy', -8)
+                .text(d => d.property);
+
+            const linkAttrs = linkElements.append('text')
+                .attr('class', 'property-attrs')
+                .attr('text-anchor', 'middle')
+                .attr('dy', 5)
+                .text(d => d.characteristics.join(', '));
+
+            const tooltip = d3.select('#tooltip');
+
+            const nodeElements = svg.append('g')
+                .selectAll('g')
+                .data(propertiesNodeArray)
+                .enter().append('g')
+                .attr('class', d => `node ${d.type}`)
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+
+            nodeElements.append('circle')
+                .attr('r', 20);
+
+            nodeElements.append('text')
+                .attr('dy', 35)
+                .attr('text-anchor', 'middle')
+                .text(d => d.label);
+
+            linkElements
+                .on('mouseover', function(event, d) {
+                    const chars = d.characteristics.length > 0 ? d.characteristics.join(', ') : 'None';
+                    tooltip
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 10) + 'px')
+                        .html(`<strong>${d.property}</strong><br/>
+                               Domain: ${d.source.id}<br/>
+                               Range: ${d.target.id}<br/>
+                               Characteristics: ${chars}<br/>
+                               ${d.description}`)
+                        .classed('show', true);
+                })
+                .on('mouseout', function() {
+                    tooltip.classed('show', false);
+                });
+
+            nodeElements
+                .on('mouseover', function(event, d) {
+                    tooltip
+                        .style('left', (event.pageX + 10) + 'px')
+                        .style('top', (event.pageY - 10) + 'px')
+                        .html(`<strong>${d.label}</strong>`)
+                        .classed('show', true);
+                })
+                .on('mouseout', function() {
+                    tooltip.classed('show', false);
+                });
+
+            propertiesSimulation.on('tick', () => {
+                linkPaths.attr('d', d => {
+                    const dx = d.target.x - d.source.x;
+                    const dy = d.target.y - d.source.y;
+                    const dr = Math.sqrt(dx * dx + dy * dy);
+                    return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+                });
+
+                linkLabels
+                    .attr('x', d => (d.source.x + d.target.x) / 2)
+                    .attr('y', d => (d.source.y + d.target.y) / 2);
+
+                linkAttrs
+                    .attr('x', d => (d.source.x + d.target.x) / 2)
+                    .attr('y', d => (d.source.y + d.target.y) / 2);
+
+                nodeElements.attr('transform', d => `translate(${d.x},${d.y})`);
+            });
+
+            function dragstarted(event, d) {
+                if (!event.active) propertiesSimulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragended(event, d) {
+                if (!event.active) propertiesSimulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+            // Populate tables
+            const objPropTable = d3.select('#object-properties-table tbody');
+            objPropTable.html('');
+            objectProperties.forEach(prop => {
+                const row = objPropTable.append('tr');
+                row.append('td').html(`<strong>${prop.property}</strong>`);
+                row.append('td').text(prop.domain);
+                row.append('td').text(prop.range);
+                row.append('td').html(prop.characteristics.map(c => {
+                    let className = c.toLowerCase().replace(' ', '-');
+                    return `<span class="badge ${className}">${c}</span>`;
+                }).join(''));
+                row.append('td').text(prop.description);
+            });
+
+            const dataPropTable = d3.select('#data-properties-table tbody');
+            dataPropTable.html('');
+            dataProperties.forEach(prop => {
+                const row = dataPropTable.append('tr');
+                row.append('td').html(`<strong>${prop.property}</strong>`);
+                row.append('td').text(prop.domain);
+                row.append('td').text(prop.range);
+                row.append('td').html(prop.characteristics.map(c => {
+                    let className = c.toLowerCase();
+                    return `<span class="badge ${className}">${c}</span>`;
+                }).join('') || '—');
+                row.append('td').text(prop.description);
+            });
+        }
+
+        // ==================== Control Functions ====================
+        function resetView(tab) {
+            if (tab === 'full' && fullNetwork) {
+                fullNetwork.fit({
+                    animation: { duration: 1000, easingFunction: 'easeInOutQuad' }
+                });
+                closeInfo();
+            } else if (tab === 'classes' && classesNetwork) {
+                classesNetwork.fit({
+                    animation: { duration: 1000, easingFunction: 'easeInOutQuad' }
+                });
+            } else if (tab === 'properties' && propertiesSimulation) {
+                propertiesNodeArray.forEach(node => {
+                    node.fx = null;
+                    node.fy = null;
+                });
+                propertiesSimulation.alpha(1).restart();
+            }
+        }
+
+        function togglePhysics(tab, btnElement) {
+            const btn = btnElement || document.getElementById(tab + '-physics-btn');
+            if (!btn) return;
+            
+            if (tab === 'full') {
+                fullPhysicsEnabled = !fullPhysicsEnabled;
+                if (fullNetwork) {
+                    fullNetwork.setOptions({ physics: { enabled: fullPhysicsEnabled } });
+                }
+                if (fullPhysicsEnabled) {
+                    btn.classList.add('active');
+                    btn.textContent = '물리 시뮬레이션 (ON)';
+                } else {
+                    btn.classList.remove('active');
+                    btn.textContent = '물리 시뮬레이션 (OFF)';
+                }
+            } else if (tab === 'classes') {
+                classesPhysicsEnabled = !classesPhysicsEnabled;
+                if (classesNetwork) {
+                    classesNetwork.setOptions({ physics: { enabled: classesPhysicsEnabled } });
+                }
+                if (classesPhysicsEnabled) {
+                    btn.classList.add('active');
+                    btn.textContent = '물리 시뮬레이션 (ON)';
+                } else {
+                    btn.classList.remove('active');
+                    btn.textContent = '물리 시뮬레이션 (OFF)';
+                }
+            } else if (tab === 'properties') {
+                propertiesPhysicsEnabled = !propertiesPhysicsEnabled;
+                if (propertiesSimulation) {
+                    if (propertiesPhysicsEnabled) {
+                        propertiesSimulation.alphaTarget(0.3).restart();
+                        btn.classList.add('active');
+                        btn.textContent = '물리 시뮬레이션 (ON)';
+                    } else {
+                        propertiesSimulation.alphaTarget(0).stop();
+                        btn.classList.remove('active');
+                        btn.textContent = '물리 시뮬레이션 (OFF)';
+                    }
+                }
+            }
+        }
+
+        // ==================== Initialize ====================
+        window.addEventListener('load', function() {
+            initFullOntology();
+        });
+    </script>
+</body>
+</html>

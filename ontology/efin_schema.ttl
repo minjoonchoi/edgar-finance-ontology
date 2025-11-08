@@ -1,0 +1,324 @@
+@prefix efin:    <https://w3id.org/edgar-fin/2024#> .
+@prefix fibo-be: <https://spec.edmcouncil.org/fibo/ontology/BE/> .
+@prefix fro:     <http://purl.org/finregont#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# Ontology header
+#################################################################
+<https://w3id.org/edgar-fin/2024>
+    a owl:Ontology ;
+    rdfs:label "EDGAR-FIN 2024 Financial Ontology"@en ;
+    owl:versionInfo "2024.3-final" ;
+    rdfs:comment "RDFS/OWL schema to normalize SEC EDGAR XBRL metrics (US-GAAP/IFRS, industry variants) into canonical investor-ready observations."@en .
+
+#################################################################
+# Core Classes
+#################################################################
+efin:FinancialObservation a owl:Class ;
+  rdfs:label "Financial Observation"@en ;
+  rdfs:comment "A quantitative observation (value) for a specific company, metric, period and currency."@en .
+
+efin:CanonicalMetric a owl:Class ;
+  rdfs:label "Canonical Metric"@en ;
+  rdfs:comment "Metric vocabulary (e.g., Revenue, OperatingIncome, NetIncome, CFO, Assets...)."@en .
+
+efin:XbrlConcept a owl:Class ;
+  rdfs:label "XBRL Concept"@en ;
+  rdfs:comment "Source XBRL qualified concept (e.g., us-gaap:Revenues)."@en .
+
+efin:TagMapping a owl:Class ;
+  rdfs:label "Tag Mapping"@en ;
+  rdfs:comment "Mapping object from XBRL concept to a CanonicalMetric."@en .
+
+efin:Period a owl:Class ;
+  rdfs:label "Period"@en ;
+  rdfs:comment "Temporal context of an observation (duration or instant)."@en .
+
+efin:DurationPeriod a owl:Class ;
+  rdfs:subClassOf efin:Period ;
+  rdfs:label "Duration Period"@en ;
+  rdfs:comment "Has start and end dates (e.g., FY 2024)."@en .
+
+efin:InstantPeriod a owl:Class ;
+  rdfs:subClassOf efin:Period ;
+  rdfs:label "Instant Period"@en ;
+  rdfs:comment "Point-in-time (has end only), e.g., balance sheet date."@en .
+
+[ a owl:AllDisjointClasses ; owl:members ( efin:DurationPeriod efin:InstantPeriod ) ] .
+
+efin:Currency a owl:Class ;
+  rdfs:label "Currency"@en ;
+  rdfs:comment "Monetary currency (e.g., USD)."@en .
+
+efin:AccountingStandard a owl:Class ;
+  rdfs:label "Accounting Standard"@en ;
+  rdfs:comment "Accounting regime (US-GAAP, IFRS)."@en .
+
+efin:Industry a owl:Class ;
+  rdfs:label "Industry"@en ;
+  rdfs:comment "Industry classification (e.g., Banking, REITs, Utilities...)."@en .
+
+# Reuse alignment (safe: subClassOf; you may switch to owl:equivalentClass if your imported ontologies match exactly)
+efin:LegalEntity a owl:Class ;
+  rdfs:label "Legal Entity"@en ;
+  rdfs:comment "Company / issuer as a legal entity."@en ;
+  rdfs:subClassOf fibo-be:LegalEntity .
+
+efin:RegulatoryFiling a owl:Class ;
+  rdfs:label "Regulatory Filing"@en ;
+  rdfs:comment "SEC filing document (10-K, 20-F, etc.)."@en ;
+  rdfs:subClassOf fro:RegulatoryFiling .
+
+#################################################################
+# Observation specializations via definitions (for inference)
+#################################################################
+efin:RevenueObservation a owl:Class ;
+  rdfs:label "Revenue Observation"@en ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:FinancialObservation
+      [ a owl:Restriction ; owl:onProperty efin:forMetric ; owl:hasValue efin:Revenue ]
+    )
+  ] .
+
+efin:OperatingIncomeObservation a owl:Class ;
+  rdfs:label "Operating Income Observation"@en ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:FinancialObservation
+      [ a owl:Restriction ; owl:onProperty efin:forMetric ; owl:hasValue efin:OperatingIncome ]
+    )
+  ] .
+
+efin:OperatingComparableObservation a owl:Class ;
+  rdfs:label "Operating Comparable Observation"@en ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:FinancialObservation
+      [ a owl:Restriction ; owl:onProperty efin:normalizedAs ; owl:hasValue efin:OperatingIncomeComparable ]
+    )
+  ] .
+
+efin:NetIncomeObservation a owl:Class ;
+  rdfs:label "Net Income Observation"@en ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:FinancialObservation
+      [ a owl:Restriction ; owl:onProperty efin:forMetric ; owl:hasValue efin:NetIncome ]
+    )
+  ] .
+
+efin:CFOObservation a owl:Class ;
+  rdfs:label "Cash Flow from Operations Observation"@en ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:FinancialObservation
+      [ a owl:Restriction ; owl:onProperty efin:forMetric ; owl:hasValue efin:CFO ]
+    )
+  ] .
+
+efin:CashAndCashEquivalentsObservation a owl:Class ;
+  rdfs:label "Cash and Cash Equivalents Observation"@en ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:FinancialObservation
+      [ a owl:Restriction ; owl:onProperty efin:forMetric ; owl:hasValue efin:CashAndCashEquivalents ]
+    )
+  ] .
+
+efin:AssetsObservation a owl:Class ;
+  rdfs:label "Assets Observation"@en ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:FinancialObservation
+      [ a owl:Restriction ; owl:onProperty efin:forMetric ; owl:hasValue efin:Assets ]
+    )
+  ] .
+
+efin:LiabilitiesObservation a owl:Class ;
+  rdfs:label "Liabilities Observation"@en ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:FinancialObservation
+      [ a owl:Restriction ; owl:onProperty efin:forMetric ; owl:hasValue efin:Liabilities ]
+    )
+  ] .
+
+efin:EquityObservation a owl:Class ;
+  rdfs:label "Equity Observation"@en ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:FinancialObservation
+      [ a owl:Restriction ; owl:onProperty efin:forMetric ; owl:hasValue efin:Equity ]
+    )
+  ] .
+
+#################################################################
+# Object Properties
+#################################################################
+efin:forEntity a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range efin:LegalEntity ;
+  rdfs:label "for entity"@en .
+
+efin:forMetric a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range efin:CanonicalMetric ;
+  rdfs:label "for metric"@en .
+
+efin:hasPeriod a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range efin:Period ;
+  rdfs:label "has period"@en .
+
+efin:hasCurrency a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range efin:Currency ;
+  rdfs:label "has currency"@en .
+
+efin:usesAccountingStandard a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range efin:AccountingStandard ;
+  rdfs:label "uses accounting standard"@en .
+
+efin:basedOnConcept a owl:ObjectProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range efin:XbrlConcept ;
+  rdfs:label "based on XBRL concept"@en .
+
+efin:normalizedAs a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range efin:CanonicalMetric ;
+  rdfs:label "normalized as"@en .
+
+efin:computedFrom a owl:ObjectProperty , owl:TransitiveProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range efin:FinancialObservation ;
+  rdfs:label "computed from"@en .
+
+efin:hasIndustry a owl:ObjectProperty ;
+  rdfs:domain efin:LegalEntity ; rdfs:range efin:Industry ;
+  rdfs:label "has industry"@en .
+
+efin:hasIndustryOfObservation a owl:ObjectProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range efin:Industry ;
+  rdfs:label "has industry (observation)"@en ;
+  owl:propertyChainAxiom ( efin:forEntity efin:hasIndustry ) .
+
+efin:mapsFrom a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:TagMapping ; rdfs:range efin:XbrlConcept ;
+  rdfs:label "maps from"@en .
+
+efin:mapsTo a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:TagMapping ; rdfs:range efin:CanonicalMetric ;
+  rdfs:label "maps to"@en .
+
+efin:hasFiling a owl:ObjectProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range efin:RegulatoryFiling ;
+  rdfs:label "has filing"@en .
+
+#################################################################
+# Datatype Properties
+#################################################################
+efin:hasValue a owl:DatatypeProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range xsd:decimal ;
+  rdfs:label "has value"@en .
+
+efin:periodStart a owl:DatatypeProperty ;
+  rdfs:domain efin:Period ; rdfs:range xsd:date ;
+  rdfs:label "period start"@en .
+
+efin:periodEnd a owl:DatatypeProperty ;
+  rdfs:domain efin:Period ; rdfs:range xsd:date ;
+  rdfs:label "period end"@en .
+
+efin:fiscalYear a owl:DatatypeProperty ;
+  rdfs:domain efin:Period ; rdfs:range xsd:gYear ;
+  rdfs:label "fiscal year"@en .
+
+efin:fiscalYearEnd a owl:DatatypeProperty ;
+  rdfs:domain efin:Period ; rdfs:range xsd:string ;
+  rdfs:label "fiscal year end"@en ;
+  rdfs:comment "Fiscal year end date in MMDD format (e.g., '1231' for December 31)."@en .
+
+efin:hasCIK a owl:DatatypeProperty ;
+  rdfs:domain efin:LegalEntity ; rdfs:range xsd:string ;
+  rdfs:label "has CIK"@en ;
+  rdfs:comment "SEC Central Index Key (CIK) number."@en .
+
+efin:hasSymbol a owl:DatatypeProperty ;
+  rdfs:domain efin:LegalEntity ; rdfs:range xsd:string ;
+  rdfs:label "has symbol"@en ;
+  rdfs:comment "Stock ticker symbol."@en .
+
+efin:hasName a owl:DatatypeProperty ;
+  rdfs:domain efin:LegalEntity ; rdfs:range xsd:string ;
+  rdfs:label "has name"@en ;
+  rdfs:comment "Company name."@en .
+
+efin:hasSourceType a owl:DatatypeProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range xsd:string ;
+  rdfs:label "has source type"@en ;
+  rdfs:comment "Source type of the observation (e.g., 'annual', 'composite', 'derived', 'instant')."@en .
+
+efin:hasConfidence a owl:DatatypeProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range xsd:decimal ;
+  rdfs:label "has confidence"@en ;
+  rdfs:comment "Confidence score of the selected tag (0.0-1.0)."@en .
+
+efin:hasReason a owl:DatatypeProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range xsd:string ;
+  rdfs:label "has reason"@en ;
+  rdfs:comment "Reason for selecting this tag."@en .
+
+efin:hasCompositeName a owl:DatatypeProperty ;
+  rdfs:domain efin:FinancialObservation ; rdfs:range xsd:string ;
+  rdfs:label "has composite name"@en ;
+  rdfs:comment "Name of the composite calculation (if applicable)."@en .
+
+efin:hasFormType a owl:DatatypeProperty ;
+  rdfs:domain efin:RegulatoryFiling ; rdfs:range xsd:string ;
+  rdfs:label "has form type"@en ;
+  rdfs:comment "SEC filing form type (e.g., '10-K', '20-F')."@en .
+
+efin:hasAccessionNumber a owl:DatatypeProperty ;
+  rdfs:domain efin:RegulatoryFiling ; rdfs:range xsd:string ;
+  rdfs:label "has accession number"@en ;
+  rdfs:comment "SEC accession number."@en .
+
+#################################################################
+# Cardinality constraints (OWL 2)
+#################################################################
+efin:FinancialObservation rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty efin:forEntity ; owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass efin:LegalEntity ],
+  [ a owl:Restriction ; owl:onProperty efin:forMetric ; owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass efin:CanonicalMetric ],
+  [ a owl:Restriction ; owl:onProperty efin:hasPeriod ; owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass efin:Period ],
+  [ a owl:Restriction ; owl:onProperty efin:hasCurrency ; owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass efin:Currency ],
+  [ a owl:Restriction ; owl:onProperty efin:usesAccountingStandard ; owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass efin:AccountingStandard ],
+  [ a owl:Restriction ; owl:onProperty efin:hasValue ; owl:cardinality "1"^^xsd:nonNegativeInteger ] .
+
+#################################################################
+# Class key (uniqueness of observations)
+#################################################################
+efin:FinancialObservation owl:hasKey ( efin:forEntity efin:forMetric efin:hasPeriod efin:hasCurrency ) .
+
+#################################################################
+# Canonical Metric individuals (must exist for hasValue restrictions)
+#################################################################
+efin:Revenue                    a efin:CanonicalMetric ; rdfs:label "Revenue"@en .
+efin:OperatingIncome            a efin:CanonicalMetric ; rdfs:label "Operating Income"@en .
+efin:OperatingIncomeComparable  a efin:CanonicalMetric ; rdfs:label "Operating Income (Comparable)"@en .
+efin:NetIncome                  a efin:CanonicalMetric ; rdfs:label "Net Income"@en .
+efin:CFO                        a efin:CanonicalMetric ; rdfs:label "Cash Flow from Operations"@en .
+efin:Assets                     a efin:CanonicalMetric ; rdfs:label "Assets"@en .
+efin:Liabilities                a efin:CanonicalMetric ; rdfs:label "Liabilities"@en .
+efin:Equity                     a efin:CanonicalMetric ; rdfs:label "Equity"@en .
+efin:CashAndCashEquivalents     a efin:CanonicalMetric ; rdfs:label "Cash and Cash Equivalents"@en .
+
+[ a owl:AllDifferent ;
+  owl:members ( efin:Revenue efin:OperatingIncome efin:OperatingIncomeComparable efin:NetIncome efin:CFO efin:Assets efin:Liabilities efin:Equity efin:CashAndCashEquivalents )
+] .

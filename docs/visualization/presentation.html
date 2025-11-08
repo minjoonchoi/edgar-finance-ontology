@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&P500 FY2024 금융 온톨로지 - 중간 보고</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            overflow: hidden;
+        }
+
+        .slide-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .slide {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: white;
+            padding: 40px 60px;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            display: block;
+            z-index: 1;
+        }
+
+        .slide h1 {
+            color: #1a1a1a;
+            font-size: 2em;
+            margin-bottom: 15px;
+            border-bottom: 4px solid #2c5aa0;
+            padding-bottom: 12px;
+        }
+
+        .slide h2 {
+            color: #2c5aa0;
+            font-size: 1.6em;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        .slide h3 {
+            color: #2c5aa0;
+            font-size: 1.3em;
+            margin-top: 18px;
+            margin-bottom: 12px;
+        }
+
+        .slide p, .slide li {
+            color: #333;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .slide ul, .slide ol {
+            margin-left: 25px;
+            margin-bottom: 12px;
+        }
+
+        .slide li {
+            margin-bottom: 6px;
+        }
+
+        .slide code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        .slide strong {
+            color: #2c5aa0;
+            font-weight: 600;
+        }
+
+        .metadata {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 12px 0;
+            border-left: 4px solid #2c5aa0;
+        }
+
+        .metadata p {
+            margin-bottom: 6px;
+        }
+
+
+        .slide-counter {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            background: #2c5aa0;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            z-index: 9999;
+        }
+
+        .title-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .title-slide h1 {
+            font-size: 2.5em;
+            border: none;
+            margin-bottom: 30px;
+        }
+
+        .separator {
+            border-top: 2px solid #e0e0e0;
+            margin: 20px 0;
+        }
+
+        @media print {
+            body {
+                background: white;
+                overflow: visible;
+            }
+
+            .slide-container {
+                width: 100%;
+                height: auto;
+                display: block;
+            }
+
+            .slide {
+                display: block !important;
+                position: relative !important;
+                width: 100%;
+                max-width: 100%;
+                height: auto;
+                min-height: 100vh;
+                page-break-after: always;
+                page-break-inside: avoid;
+                margin: 0;
+                padding: 40px;
+                box-shadow: none;
+                border-radius: 0;
+                animation: none;
+            }
+
+            .slide:last-child {
+                page-break-after: auto;
+            }
+
+            .slide-counter {
+                display: none !important;
+            }
+
+            .slide h1 {
+                page-break-after: avoid;
+            }
+
+            .slide h2,
+            .slide h3 {
+                page-break-after: avoid;
+            }
+
+            .metadata {
+                page-break-inside: avoid;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">0</span>
+    </div>
+
+    <div class="slide-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active title-slide">
+            <h1>EDGAR-FIN 2024 온톨로지</h1>
+            <h2 style="color: #666; font-weight: 400; margin-top: 15px;">ODP 기반 설계 및 개발 방식</h2>
+            <div class="metadata" style="margin-top: 40px; text-align: left;">
+                <p><strong>네임스페이스:</strong> <code>efin:</code> = <code>https://w3id.org/edgar-fin/2024#</code></p>
+                <p><strong>도메인:</strong> 미국 S&P500 기업의 FY2024 재무제표 (SEC EDGAR XBRL 데이터)</p>
+                <p><strong>목표:</strong> Canonical(표준화)된 지표로 이질적 XBRL 태그 통합 표현</p>
+                <p><strong>재사용 온톨로지:</strong> FIBO (fibo-be:LegalEntity), FinRegOnt (fro:RegulatoryFiling)</p>
+                <p><strong>적용 ODP:</strong> Observation Pattern, Data Normalization Pattern, Property Chain Pattern, Key Pattern</p>
+            </div>
+        </div>
+
+        <!-- Slide 2: 목차 -->
+        <div class="slide">
+            <h1>목차</h1>
+            <ol style="font-size: 1.1em; line-height: 1.9;">
+                <li>온톨로지 개요</li>
+                <li>ODP 단계별 개발 과정
+                    <ul style="font-size: 0.9em; margin-top: 6px;">
+                        <li>1단계: 용어추출 (Term Extraction)</li>
+                        <li>2단계: 개념화 (Conceptualization)</li>
+                        <li>3단계: 형식화 (Formalization)</li>
+                    </ul>
+                </li>
+                <li>온톨로지 스키마 요약
+                    <ul style="font-size: 0.9em; margin-top: 6px;">
+                        <li>재사용 vs 자체 구축 클래스</li>
+                        <li>핵심 프로퍼티</li>
+                        <li>제약 조건</li>
+                        <li>Canonical 지표 집합</li>
+                    </ul>
+                </li>
+                <li>Protege 시연</li>
+                <li>결론</li>
+            </ol>
+        </div>
+
+        <!-- Slide 3: 온톨로지 개요 -->
+        <div class="slide">
+            <h1>1. 온톨로지 개요</h1>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95em;">
+                <tr style="background: #f0f0f0;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: 600; width: 30%;">항목</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: 600;">설명</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>이름</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">EDGAR-FIN 2024 Financial Ontology</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>Namespace</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>https://w3id.org/edgar-fin/2024#</code> (<code>efin:</code>)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>도메인</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">미국 S&P500 기업의 FY2024 재무제표</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>목표</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">동일 재무지표의 기업별·업종별 이질적 XBRL 태그를 Canonical 지표로 통합</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>재사용</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FIBO (fibo-be:LegalEntity), FinRegOnt (fro:RegulatoryFiling)</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>ODP 패턴</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Observation, Data Normalization, Property Chain, Key Pattern</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Slide 4: ODP 개발 과정 개요 -->
+        <div class="slide">
+            <h1>2. ODP 단계별 개발 과정</h1>
+            
+            <div class="metadata" style="margin-top: 25px;">
+                <h2 style="color: #2c5aa0; margin-bottom: 12px;">3단계 접근법</h2>
+                <ol style="font-size: 1.1em; line-height: 1.9;">
+                    <li><strong>1단계 — 용어추출 (Term Extraction)</strong>
+                        <p style="font-size: 0.85em; margin-top: 5px; color: #555;">데이터 원천, CQ, 분석 용어집에서 후보 용어 식별 및 정제</p>
+                    </li>
+                    <li><strong>2단계 — 개념화 (Conceptualization)</strong>
+                        <p style="font-size: 0.85em; margin-top: 5px; color: #555;">클래스 및 프로퍼티 정의, 설계 패턴 적용</p>
+                    </li>
+                    <li><strong>3단계 — 형식화 (Formalization)</strong>
+                        <p style="font-size: 0.85em; margin-top: 5px; color: #555;">OWL 제약조건 정의 (Cardinality, Disjoint, Key, PropertyChain)</p>
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Slide 5: 1단계 - 용어추출: 데이터 원천 -->
+        <div class="slide">
+            <h1>2.1 1단계 — 용어추출 (1/2)</h1>
+            
+            <h2>데이터 원천</h2>
+            <ul style="font-size: 1em; line-height: 1.7;">
+                <li><strong>SEC EDGAR Company Facts API</strong></li>
+                <li><strong>US-GAAP / IFRS Taxonomy (2024)</strong>
+                    <ul style="margin-top: 5px;">
+                        <li>회계 기준별 공식 태그 명칭 (예: <code>us-gaap:Revenues</code>, <code>ifrs-full:ProfitLoss</code>)</li>
+                    </ul>
+                </li>
+                <li><strong>기업 확장태그 (Extension)</strong>
+                    <ul style="margin-top: 5px;">
+                        <li><code>ext:</code> prefix 태그 포함. 회사별 비표준 항목 식별</li>
+                    </ul>
+                </li>
+                <li><strong>Competency Questions (CQ)</strong>
+                    <ul style="margin-top: 5px;">
+                        <li>"Which companies reported Revenue in FY2024?"</li>
+                        <li>"What is the Operating Income of each REIT?"</li>
+                        <li>"Which REITs derive revenue from rental income?"</li>
+                    </ul>
+                </li>
+                <li><strong>분석 용어집 (Analytical Vocabulary)</strong>
+                    <ul style="margin-top: 5px;">
+                        <li>회계·재무 분석 교재 및 산업 분류체계</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Slide 6: 1단계 - 용어추출: 정제 과정 및 참고 출처 -->
+        <div class="slide">
+            <h1>2.1 1단계 — 용어추출 (2/2)</h1>
+            
+            <h2>용어 정제 과정</h2>
+            <ol style="font-size: 1em; line-height: 1.7;">
+                <li><strong>텍스트 마이닝 기반 후보 식별</strong>
+                    <ul style="margin-top: 5px;">
+                        <li>XBRL 태그 네임에서 의미 단위 추출</li>
+                        <li>명사 중심 후보 생성 (Revenue, OperatingIncome, Assets)</li>
+                    </ul>
+                </li>
+                <li><strong>유의어·동의어 병합</strong>
+                    <ul style="margin-top: 5px;">
+                        <li><code>SalesRevenueNet</code>, <code>Revenues</code>, <code>OperatingRevenue</code> → <code>Revenue</code></li>
+                    </ul>
+                </li>
+                <li><strong>CQ 및 자연어 패턴 매핑</strong>
+                    <ul style="margin-top: 5px;">
+                        <li>명사구 → 클래스 후보 (companies → LegalEntity)</li>
+                        <li>동사구 → 프로퍼티 후보 (reported → forMetric)</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <div class="separator"></div>
+
+            <h3>주요 참고 출처</h3>
+            <p style="font-size: 0.95em;">US-GAAP/IFRS Taxonomy (FASB, IASB), Penman <em>Financial Statement Analysis</em>, Kieso <em>Intermediate Accounting</em>, Damodaran <em>Investment Valuation</em>, SIC/GICS/NAICS 산업 분류</p>
+        </div>
+
+        <!-- Slide 7: 1단계 - CQ 기반 용어 매핑 예시 -->
+        <div class="slide">
+            <h1>2.1 CQ 및 자연어 패턴 매핑 예시</h1>
+            
+            <div class="metadata">
+                <p style="font-size: 1em;"><strong>CQ:</strong> "Which companies reported Revenue in FY2024?"</p>
+                <ul style="margin-top: 6px; font-size: 0.95em;">
+                    <li>[companies] → <code>LegalEntity</code></li>
+                    <li>[reported] → <code>forMetric</code></li>
+                    <li>[Revenue] → <code>CanonicalMetric</code></li>
+                    <li>[FY2024] → <code>Period</code></li>
+                </ul>
+            </div>
+
+            <div class="metadata">
+                <p style="font-size: 1em;"><strong>CQ:</strong> "Revenue derived from rental income."</p>
+                <ul style="margin-top: 6px; font-size: 0.95em;">
+                    <li>[Revenue] → <code>CanonicalMetric</code></li>
+                    <li>[rental income] → <code>XbrlConcept</code></li>
+                    <li>[derived from] → <code>computedFrom</code></li>
+                </ul>
+            </div>
+
+            <div class="metadata">
+                <p style="font-size: 1em;"><strong>제약 문장:</strong> "Each observation has exactly one period."</p>
+                <ul style="margin-top: 6px; font-size: 0.95em;">
+                    <li>→ Restriction: <code>(hasPeriod exactly 1 Period)</code></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 8: 2단계 - 개념화: 핵심 설계 패턴 -->
+        <div class="slide">
+            <h1>2.2 2단계 — 개념화 (Conceptualization)</h1>
+            
+            <h2>핵심 설계 패턴</h2>
+            
+            <div class="metadata">
+                <h3 style="color: #2c5aa0;">Observation Pattern</h3>
+                <p>수치 데이터 = (주체, 속성, 맥락, 값) → <code>FinancialObservation</code> 중심 구조</p>
+            </div>
+
+            <div class="metadata">
+                <h3 style="color: #2c5aa0;">Canonicalization Pattern</h3>
+                <p>다양한 XBRL 태그를 <code>CanonicalMetric</code>으로 통합 (<code>TagMapping</code>, <code>XbrlConcept</code> 도입)</p>
+            </div>
+
+            <div class="metadata">
+                <h3 style="color: #2c5aa0;">Contextualization Pattern</h3>
+                <p>기간(<code>Period</code>), 통화(<code>Currency</code>), 회계기준(<code>AccountingStandard</code>)을 맥락으로 표현</p>
+            </div>
+
+            <div class="metadata">
+                <h3 style="color: #2c5aa0;">Upper Ontology Reuse</h3>
+                <p><code>LegalEntity</code> ← <code>fibo-be:LegalEntity</code><br>
+                <code>RegulatoryFiling</code> ← <code>fro:RegulatoryFiling</code></p>
+            </div>
+        </div>
+
+        <!-- Slide 9: 2단계 - CQ 기반 클래스/프로퍼티 도출 -->
+        <div class="slide">
+            <h1>2.2 CQ 기반 클래스/프로퍼티 도출</h1>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.95em;">
+                <tr style="background: #f0f0f0;">
+                    <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600; width: 35%;">CQ/자연어 예문</td>
+                    <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600; width: 30%;">도출 요소</td>
+                    <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600;">근거 설명</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;">"Which companies reported Revenue?"</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><code>LegalEntity</code>, <code>CanonicalMetric</code>, <code>forMetric</code></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">"companies" 명사구 → 기업 클래스<br>"reported" 동사 → forMetric</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 12px; border: 1px solid #ddd;">"Revenue in USD during FY2024"</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><code>hasCurrency</code>, <code>hasPeriod</code></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">"USD" → 통화 속성<br>"FY2024" → 기간 속성</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;">"Operating Income derived from GrossProfit minus SG&A"</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><code>computedFrom</code></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">계산식 문장 구조로부터 도출</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 12px; border: 1px solid #ddd;">"Each observation has exactly one period"</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><code>(hasPeriod exactly 1 Period)</code></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">자연어 제약 문장 패턴</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Slide 10: 3단계 - 형식화: OWL 제약 패턴 -->
+        <div class="slide">
+            <h1>2.3 3단계 — 형식화 (Formalization)</h1>
+            
+            <h2>적용된 OWL 제약 패턴</h2>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.95em;">
+                <tr style="background: #f0f0f0;">
+                    <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600; width: 25%;">유형</td>
+                    <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600; width: 40%;">예시 표현</td>
+                    <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600;">목적</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><strong>Cardinality</strong></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><code>(forEntity exactly 1 LegalEntity)</code></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">필수 구성요소 보장</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 12px; border: 1px solid #ddd;"><strong>Functional</strong></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><code>FunctionalProperty(forMetric)</code></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">1:1 관계 강제</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><strong>Disjoint</strong></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><code>DurationPeriod ⊥ InstantPeriod</code></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">시점/기간 혼동 방지</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 12px; border: 1px solid #ddd;"><strong>Key</strong></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><code>HasKey(FinancialObservation ...)</code></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">동일 조합 중복 방지</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><strong>EquivalentClass</strong></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><code>RevenueObservation ≡ ...</code></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">추론기 자동 분류</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 12px; border: 1px solid #ddd;"><strong>PropertyChain</strong></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><code>(forEntity ∘ hasIndustry) ⊑ ...</code></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">산업 자동 상속</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Slide 11: 스키마 요약 - 재사용 vs 자체 구축 -->
+        <div class="slide">
+            <h1>3.1 재사용 vs 자체 구축 클래스</h1>
+            
+            <h3 style="color: #2c5aa0;">재사용 클래스</h3>
+            <ul style="font-size: 0.95em; line-height: 1.7;">
+                <li><code>efin:Company</code> ← <code>fibo-be:LegalEntity</code>
+                    <p style="font-size: 0.9em; color: #555; margin-top: 4px;">CQ "Which companies..."에서 [companies] 명사구</p>
+                </li>
+                <li><code>efin:RegulatoryFiling</code> ← <code>fro:RegulatoryFiling</code>
+                    <p style="font-size: 0.9em; color: #555; margin-top: 4px;">CQ "In which filings..."의 [filings] 명사구</p>
+                </li>
+            </ul>
+
+            <div class="separator"></div>
+
+            <h3 style="color: #2c5aa0;">핵심 자체 구축 클래스</h3>
+            <ul style="font-size: 0.95em; line-height: 1.7;">
+                <li><code>FinancialObservation</code> — Observation 패턴 중심</li>
+                <li><code>CanonicalMetric</code> — CQ의 [Revenue], [Operating Income] 등 명사구</li>
+                <li><code>XbrlConcept</code> — "tag", "concept", "XBRL element"</li>
+                <li><code>TagMapping</code> — "map", "corresponds to" 구문</li>
+                <li><code>Period</code>, <code>Currency</code>, <code>AccountingStandard</code>, <code>Industry</code></li>
+            </ul>
+        </div>
+
+        <!-- Slide 12: 스키마 요약 - 핵심 프로퍼티 -->
+        <div class="slide">
+            <h1>3.2 핵심 오브젝트/데이터 프로퍼티</h1>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85em;">
+                <tr style="background: #f0f0f0;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: 600; width: 25%;">프로퍼티</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: 600; width: 35%;">Domain → Range</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: 600;">CQ·자연어 근거</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>forEntity</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → LegalEntity</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"Which companies..." 주어</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>forMetric</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → CanonicalMetric</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"reported [Revenue]" 목적어</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasPeriod</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → Period</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"in [FY2024]" 시간구</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasCurrency</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → Currency</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"in [USD]" 화폐 명시</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>basedOnConcept</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → XbrlConcept</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"tagged as [us-gaap:Revenue]"</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>computedFrom</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → FinancialObservation</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"derived from Revenue – Expenses"</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasValue</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → xsd:decimal</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"What was the [value]..."</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasSourceType</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → xsd:string</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">소스 타입 (annual, composite, derived 등)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasConfidence</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → xsd:decimal</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">신뢰도 점수 (0.0-1.0)</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasReason</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → xsd:string</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">선택 이유 설명</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasFiling</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">FinancialObservation → RegulatoryFiling</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">관측값의 출처 문서</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasCIK</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">LegalEntity → xsd:string</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">SEC CIK 번호</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasSymbol</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">LegalEntity → xsd:string</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">티커 심볼</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasName</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">LegalEntity → xsd:string</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">회사명</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>fiscalYearEnd</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Period → xsd:string</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">회계연도 종료일 (MMDD 형식)</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasFormType</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">RegulatoryFiling → xsd:string</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">제출 문서 형태 (10-K, 20-F 등)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>hasAccessionNumber</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">RegulatoryFiling → xsd:string</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">SEC 접근 번호</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Slide 13: 스키마 요약 - 제약 조건 -->
+        <div class="slide">
+            <h1>3.3 제약(Constraints) 요약</h1>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85em;">
+                <tr style="background: #f0f0f0;">
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: 600; width: 20%;">제약</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: 600; width: 40%;">표현</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; font-weight: 600;">CQ/자연어 근거</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>필수 키</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>(forEntity, forMetric, hasPeriod, hasCurrency)</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"Each observation must specify company, metric, period, and currency."</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>상호배타</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>DurationPeriod ⊥ InstantPeriod</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"Periods are either duration or instant, never both."</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>유일성</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>HasKey(FinancialObservation ...)</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"Only one observation per company per metric per period."</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>정의 클래스</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>RevenueObservation ≡ FinancialObservation ⊓ (forMetric value Revenue)</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"Revenue observations are those whose metric is Revenue."</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><strong>체인</strong></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;"><code>(forEntity ∘ hasIndustry) ⊑ hasIndustryOfObservation</code></td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">"An observation inherits the industry of its entity."</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Slide 14: 스키마 요약 - Canonical 지표 집합 -->
+        <div class="slide">
+            <h1>3.4 Canonical 지표 집합</h1>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em;">
+                <tr style="background: #f0f0f0;">
+                    <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600; width: 25%;">카테고리</td>
+                    <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600; width: 40%;">지표</td>
+                    <td style="padding: 12px; border: 1px solid #ddd; font-weight: 600;">CQ 및 자연어 근거</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><strong>손익 (P&L)</strong></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">Revenue, OperatingIncome, NetIncome</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">"What was Revenue of company X?"<br>"Operating Income by industry?"</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 12px; border: 1px solid #ddd;"><strong>현금흐름 (CF)</strong></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">CFO</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">"Net Cash Provided by Operating Activities"</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #ddd;"><strong>재무상태 (BS)</strong></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">Assets, Liabilities, Equity, CashAndCashEquivalents</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">"What are total assets/liabilities at end of FY2024?"</td>
+                </tr>
+                <tr style="background: #f9f9f9;">
+                    <td style="padding: 12px; border: 1px solid #ddd;"><strong>파생 (Comparable)</strong></td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">OperatingIncomeComparable</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">"Comparable Operating Income across firms"</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Slide 15: Protege 시연 -->
+        <div class="slide">
+            <h1>4. Protege 시연</h1>
+            
+            <h2>온톨로지 시각화 및 추론</h2>
+            
+            <div class="metadata">
+                <h3 style="color: #2c5aa0; margin-bottom: 10px;">1. 스키마 구조 확인</h3>
+                <ul style="font-size: 0.95em; line-height: 1.6;">
+                    <li><strong>클래스 계층 구조</strong>: FinancialObservation, Period, CanonicalMetric 등</li>
+                    <li><strong>프로퍼티 정의</strong>: forEntity, forMetric, hasPeriod, computedFrom</li>
+                    <li><strong>제약 조건 검증</strong>: Cardinality, Disjoint, Key 제약 확인</li>
+                </ul>
+            </div>
+
+            <div class="metadata">
+                <h3 style="color: #2c5aa0; margin-bottom: 10px;">2. 인스턴스 확인</h3>
+                <ul style="font-size: 0.95em; line-height: 1.6;">
+                    <li><strong>기업 데이터</strong>: S&P500 기업 정보 (CIK, 이름, 업종)</li>
+                    <li><strong>재무 관측치</strong>: Revenue, OperatingIncome, NetIncome 등</li>
+                    <li><strong>태그 매핑</strong>: XBRL 태그 → Canonical 지표 매핑 관계</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 16: 결론 -->
+        <div class="slide">
+            <h1>5. 결론</h1>
+            
+            <div class="metadata" style="margin-top: 20px;">
+                <h3 style="color: #2c5aa0; margin-bottom: 12px;">핵심 성과</h3>
+                <ul style="font-size: 1em; line-height: 1.7;">
+                    <li><strong>FIBO·FinRegOnt 최소 재사용 + Observation 패턴 중심 자체 구축</strong></li>
+                    <li><strong>ODP 단계별 개발을 통한 체계적 설계</strong>
+                        <ul style="margin-top: 6px; font-size: 0.95em;">
+                            <li>용어추출: 회계·분석·산업 표준 용어 교차 검증</li>
+                            <li>개념화: 클래스·프로퍼티를 CQ 기반으로 체계화</li>
+                            <li>형식화: Reasoner 자동 분류 및 데이터 유일성 확보</li>
+                        </ul>
+                    </li>
+                    <li><strong>동일 재무지표의 이질적 태그를 Canonical 형태로 통합</strong></li>
+                </ul>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="metadata">
+                <h3 style="color: #2c5aa0; margin-bottom: 12px;">달성 목표</h3>
+                <ul style="font-size: 1em; line-height: 1.7;">
+                    <li><strong>XBRL 데이터의 의미적 정합성 (Semantic Consistency)</strong></li>
+                    <li><strong>투자자·분석가 질의의 재현성 (Query Reproducibility)</strong></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function printToPDF() {
+            window.print();
+        }
+
+        function showSlide(n) {
+            // 모든 슬라이드에서 active 클래스 제거
+            slides.forEach(slide => slide.classList.remove('active'));
+            
+            // 현재 슬라이드 인덱스 업데이트
+            currentSlide = (n + totalSlides) % totalSlides;
+            
+            // 현재 슬라이드에 active 클래스 추가
+            slides[currentSlide].classList.add('active');
+            
+            document.getElementById('current-slide').textContent = currentSlide + 1;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+            if (e.key === 'p' || e.key === 'P') printToPDF();
+        });
+
+        // Initialize
+        showSlide(0);
+    </script>
+</body>
+</html>
+

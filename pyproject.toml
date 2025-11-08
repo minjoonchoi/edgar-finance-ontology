@@ -1,0 +1,13 @@
+[project]
+name = "edgar-finance-ontology"
+version = "0.1.0"
+description = "EDGAR-FIN Financial Ontology"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "bs4>=0.0.2",
+    "dotenv>=0.9.9",
+    "pyyaml>=6.0",
+    "rdflib>=7.4.0",
+    "requests>=2.32.5",
+]

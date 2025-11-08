@@ -1,0 +1,36 @@
+digraph ClassHierarchy {
+  rankdir=LR;
+  node [shape=box, style="rounded,filled", fillcolor="#e8f0fe", color="#5f6368"];
+  "Company" [label="Company\n(Company)"];
+  "Sector" [label="Sector\n(Sector)"];
+  "Industry" [label="Industry\n(Industry)"];
+  "Metric" [label="Metric\n(Metric)"];
+  "BaseMetric" [label="BaseMetric\n(BaseMetric)"];
+  "DerivedMetric" [label="DerivedMetric\n(DerivedMetric)"];
+  "DerivedRatio" [label="DerivedRatio\n(DerivedRatio)"];
+  "MetricObservation" [label="MetricObservation\n(MetricObservation)"];
+  "DurationObservation" [label="DurationObservation\n(DurationObservation)"];
+  "InstantObservation" [label="InstantObservation\n(InstantObservation)"];
+  "Benchmark" [label="Benchmark\n(Benchmark)"];
+  "IndustryBenchmark" [label="IndustryBenchmark\n(IndustryBenchmark)"];
+  "AllBenchmark" [label="AllBenchmark\n(AllBenchmark)"];
+  "Ranking" [label="Ranking\n(Ranking)"];
+  "TopRanking" [label="TopRanking\n(TopRanking)"];
+  "IndustryTopRanking" [label="IndustryTopRanking\n(IndustryTopRanking)"];
+  "AllTopRanking" [label="AllTopRanking\n(AllTopRanking)"];
+  "Unit" [label="Unit\n(Unit)"];
+  "Currency" [label="Currency\n(Currency)"];
+  "FinancialReportingConcept" [label="Financial Reporting Concept\n(FinancialReportingConcept)"];
+  "XBRLConcept" [label="XBRL Concept\n(XBRLConcept)"];
+  "Metric" -> "BaseMetric";
+  "Metric" -> "DerivedMetric";
+  "DerivedMetric" -> "DerivedRatio";
+  "MetricObservation" -> "DurationObservation";
+  "MetricObservation" -> "InstantObservation";
+  "Benchmark" -> "IndustryBenchmark";
+  "Benchmark" -> "AllBenchmark";
+  "Ranking" -> "TopRanking";
+  "TopRanking" -> "IndustryTopRanking";
+  "TopRanking" -> "AllTopRanking";
+  "FinancialReportingConcept" -> "XBRLConcept";
+}

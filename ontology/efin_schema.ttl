@@ -1,0 +1,1016 @@
+@prefix efin: <https://w3id.org/edgar-fin/2024#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix fibo-be: <https://spec.edmcouncil.org/fibo/ontology/BE/> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix unit: <http://qudt.org/vocab/unit/> .
+@prefix om:   <http://www.ontology-of-units-of-measure.org/resource/om-2/> .
+
+#################################################################
+# Ontology Header
+#################################################################
+
+<https://w3id.org/edgar-fin/2024#>
+  a owl:Ontology ;
+  rdfs:label "EDGAR Financial Ontology"@en ;
+  rdfs:comment "회사 수준의 재무 지표와 관측값을 위한 재무 보고 온톨로지. 파생 비율은 기본 지표와 구별되는 클래스로 모델링됨. XBRLConcept 인스턴스 자동 생성으로 데이터 계보 추적 강화."@ko ;
+  owl:versionInfo "1.0.0" ;
+  dcterms:description "Financial ontology for SEC EDGAR XBRL data. Provides standardized representation of financial metrics extracted from SEC EDGAR XBRL filings, supporting company-level, industry-level, and sector-level analysis. v1.5.0 adds automated XBRLConcept instance generation with data lineage tracking through hasXbrlConcept relationships."@en ;
+  owl:imports <https://spec.edmcouncil.org/fibo/ontology/BE/> .
+
+#################################################################
+# Classes
+#################################################################
+# 이 섹션은 온톨로지의 모든 클래스를 정의합니다.
+# 클래스는 개체들의 집합을 나타내며, 계층 구조를 통해 조직됩니다.
+
+### 핵심 클래스
+# Company, Sector, Industry: 조직 및 분류 구조
+# Metric 계층: BaseMetric, DerivedMetric, DerivedRatio - 재무 지표의 유형 분류
+# MetricObservation: 특정 시점의 실제 측정값
+# Benchmark 및 Ranking: 산업/섹터 수준의 통계 및 순위
+
+efin:Company
+  a owl:Class ;
+  rdfs:subClassOf fibo-be:LegalEntity ;
+  rdfs:label "Company"@en ;
+  rdfs:comment "법적 실체로서의 기업. FIBO-BE의 LegalEntity를 상속받아 표준 재무 온톨로지와의 상호 운용성을 확보함."@ko .
+
+efin:Sector
+  a owl:Class ;
+  rdfs:label "Sector"@en ;
+  rdfs:comment "섹터 분류(예: Information Technology, Financials). 인스턴스는 efin:Sector{SectorName} 형태(CamelCase)."@ko .
+
+efin:Industry
+  a owl:Class ;
+  rdfs:label "Industry"@en ;
+  rdfs:comment "산업 분류(예: Services-Prepackaged Software). 인스턴스는 efin:Industry{IndustryName} 형태(CamelCase), inSectorOf로 섹터 연결."@ko .
+
+efin:Metric
+  a owl:Class ;
+  rdfs:label "Metric"@en ;
+  rdfs:comment "추상 메트릭 개념(기본 또는 파생). 모든 재무 지표의 상위 클래스로, BaseMetric과 DerivedMetric의 합집합과 동치."@ko .
+
+efin:BaseMetric
+  a owl:Class ;
+  rdfs:subClassOf efin:Metric ;
+  rdfs:label "BaseMetric"@en ;
+  rdfs:comment "보고서/XBRL에서 직접 관측된 메트릭(예: Revenue, NetIncome, CapEx). SEC EDGAR XBRL 태그에서 추출한 원시 재무 데이터. DerivedMetric과 상호 배타적."@ko .
+
+efin:DerivedMetric
+  a owl:Class ;
+  rdfs:subClassOf efin:Metric ;
+  rdfs:label "DerivedMetric"@en ;
+  rdfs:comment "다른 메트릭으로부터 계산된 메트릭(예: 마진, 성장률, 비율). BaseMetric들을 조합하여 산출되는 2차 지표로, 재무 분석의 핵심 인사이트 제공."@ko .
+
+efin:DerivedRatio
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedMetric ;
+  rdfs:label "DerivedRatio"@en ;
+  rdfs:comment "비율 형태의 파생 메트릭(예: ROE, DebtToEquity, EBITDA Margin). 두 메트릭의 나눗셈으로 표현되는 정규화된 지표로, 기업 간 비교 가능성 제공."@ko .
+
+efin:MetricObservation
+  a owl:Class ;
+  rdfs:label "MetricObservation"@en ;
+  rdfs:comment "특정 회사와 기간에 대한 메트릭의 관측된 수치값. 메트릭 개념의 구체적 인스턴스로, 시계열 재무 데이터의 기본 단위. (회사, 메트릭, 회계연도, 분기) 복합키로 고유 식별. 인스턴스는 efin:obs-{cik}-{fy}-{metric}-{end} 형태 (예: efin:obs-0000320193-2023-Revenue-2023-09-30)."@ko .
+
+efin:Benchmark
+  a owl:Class ;
+  rdfs:label "Benchmark"@en ;
+  rdfs:comment "산업, 섹터, 전체 시장 등 특정 스코프에 대한 재무 메트릭 집계 통계(평균, 중앙값, 백분위수, 백분위수 구간 등)를 나타내는 상위 클래스."@ko .
+
+efin:IndustryBenchmark
+  a owl:Class ;
+  rdfs:subClassOf efin:Benchmark ;
+  rdfs:label "IndustryBenchmark"@en ;
+  rdfs:comment "특정 산업과 연도에 대한 벤치마크 통계값. 평균, 중앙값, 백분위수 등 산업 전체의 메트릭 분포를 제공하여 개별 기업 실적을 비교 평가."@ko .
+
+efin:AllBenchmark
+  a owl:Class ;
+  rdfs:subClassOf efin:Benchmark ;
+  rdfs:label "AllBenchmark"@en ;
+  rdfs:comment "전체 시장(모든 섹터/산업)을 통합한 벤치마크 통계값. 시장 전체 수준에서의 분포와 상대적 위치를 평가하는 데 사용."@ko .
+
+efin:Ranking
+  a owl:Class ;
+  rdfs:label "Ranking"@en ;
+  rdfs:comment "재무 메트릭에 기반한 순위 결과의 상위 클래스. 특정 스코프(산업, 섹터, 전체 시장 등)에서 기업들을 정렬한 결과를 표현."@ko .
+
+efin:TopRanking
+  a owl:Class ;
+  rdfs:subClassOf efin:Ranking ;
+  rdfs:label "TopRanking"@en ;
+  rdfs:comment "특정 산업/전체 스코프 내 메트릭별 상위 랭킹(Top10, Top50, Top100). 단일 또는 복합 메트릭 기준 순위를 제공하여 우수 기업 식별."@ko .
+
+efin:IndustryTopRanking
+  a owl:Class ;
+  rdfs:subClassOf efin:TopRanking ;
+  rdfs:label "IndustryTopRanking"@en ;
+  rdfs:comment "특정 산업 내에서 메트릭별 상위 랭킹(Top10, Top50, Top100 등)을 나타내는 TopRanking 서브클래스."@ko .
+
+efin:AllTopRanking
+  a owl:Class ;
+  rdfs:subClassOf efin:TopRanking ;
+  rdfs:label "AllTopRanking"@en ;
+  rdfs:comment "전체 시장(모든 섹터/산업)을 대상으로 한 메트릭별 상위 랭킹(Top10, Top50, Top100 등)을 나타내는 TopRanking 서브클래스. 관례적으로 efin:forSector efin:SectorAll과 함께 사용."@ko .
+
+efin:Unit
+  a owl:Class ;
+  owl:equivalentClass qudt:Unit ;
+  rdfs:label "Unit"@en ;
+  rdfs:comment "측정 단위(USD, shares, percent 등). QUDT의 Unit과 동치로 정합하여 표준 단위 온톨로지와 상호운용성 확보."@ko .
+
+efin:Currency
+  a owl:Class ;
+  owl:equivalentClass qudt:CurrencyUnit ;
+  rdfs:label "Currency"@en ;
+  rdfs:comment "통화 단위(USD, KRW, EUR 등). QUDT의 CurrencyUnit과 정렬하여 표준 통화 체계 사용."@ko .
+
+efin:FinancialReportingConcept
+  a owl:Class ;
+  rdfs:label "Financial Reporting Concept"@en ;
+  rdfs:comment "재무 보고 표준의 개념 (XBRL, IFRS, K-GAAP 등). 재무 택소노미의 원본 개념과 연결하기 위한 추상 상위 클래스. 다양한 재무 보고 표준 지원 가능."@ko .
+
+efin:XBRLConcept
+  a owl:Class ;
+  rdfs:subClassOf efin:FinancialReportingConcept ;
+  rdfs:label "XBRL Concept"@en ;
+  rdfs:comment "XBRL 택소노미 개념 (SEC EDGAR XBRL 특화). QName, 네임스페이스, 레이블 등 XBRL 메타데이터 보유. FinancialReportingConcept의 XBRL 특화 서브클래스."@ko .
+
+# 향후 확장 가능한 재무 보고 표준:
+# efin:IFRSConcept rdfs:subClassOf efin:FinancialReportingConcept .
+# efin:KGAAPConcept rdfs:subClassOf efin:FinancialReportingConcept .
+
+efin:DurationObservation
+  a owl:Class ;
+  rdfs:subClassOf efin:MetricObservation ;
+  rdfs:label "DurationObservation"@en ;
+  rdfs:comment "periodType='duration'인 관측. 특정 기간 동안 누적된 값(예: 매출, 비용, 현금흐름)을 나타냄."@ko .
+
+efin:InstantObservation
+  a owl:Class ;
+  rdfs:subClassOf efin:MetricObservation ;
+  rdfs:label "InstantObservation"@en ;
+  rdfs:comment "periodType='instant'인 관측. 특정 시점의 잔액 또는 상태(예: 자산, 부채, 자본)를 나타냄."@ko .
+
+### 기본 메트릭 클래스
+# XBRL/재무제표에서 직접 보고되는 기본 재무 지표들
+# 손익계산서 항목: Revenue, OperatingIncome, NetIncome, GrossProfit 등
+# 재무상태표 항목: Assets, Liabilities, Equity, Cash 등
+# 현금흐름표 항목: CFO, CapEx 등
+# 기타 항목: EPSDiluted, Depreciation, Debt 등
+
+efin:Revenue
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Revenue"@en ;
+  rdfs:comment "총 매출액. 손익계산서 최상단 항목으로, 기업이 재화/서비스 판매로부터 얻은 총 수익."@ko .
+
+efin:OperatingIncome
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "OperatingIncome"@en ;
+  rdfs:comment "영업이익. 매출총이익에서 판매관리비를 차감한 본업 수익성 지표."@ko .
+
+efin:NetIncome
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "NetIncome"@en ;
+  rdfs:comment "순이익. 모든 수익과 비용, 이자, 세금을 반영한 최종 이익."@ko .
+
+efin:CFO
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "CashFromOperations"@en ;
+  rdfs:comment "영업활동 현금흐름. 본업 활동에서 창출한 실제 현금 유입."@ko .
+
+efin:CashAndCashEquivalents
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "CashAndCashEquivalents"@en ;
+  rdfs:comment "현금 및 현금성 자산. 즉시 사용 가능한 유동성 자원."@ko .
+
+efin:Assets
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Assets"@en ;
+  rdfs:comment "총 자산. 기업이 보유한 모든 경제적 자원의 합계."@ko .
+
+efin:Liabilities
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Liabilities"@en ;
+  rdfs:comment "총 부채. 기업이 부담하는 모든 채무의 합계."@ko .
+
+efin:Equity
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Equity"@en ;
+  rdfs:comment "자본(자기자본). 주주의 소유 지분."@ko .
+
+efin:EPSDiluted
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "EPSDiluted"@en ;
+  rdfs:comment "희석 주당순이익. 보통주 1주당 귀속 순이익(잠재적 희석증권 반영). 투자자가 수익성을 평가하는 핵심 지표."@ko ;
+  efin:hasFormulaMath "EPSDiluted = NetIncomeAvailableToCommon / WeightedAvgDilutedShares"@en ;
+  efin:hasFormulaNote "XBRL에서 직접 EPS diluted 태그를 우선 사용. 없는 경우 보통주 귀속 순이익을 희석 주식수로 나누어 계산."@ko .
+
+efin:CapEx
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "CapitalExpenditure"@en ;
+  rdfs:comment "자본적 지출. 유형자산 취득을 위한 투자 지출."@ko .
+
+efin:InterestExpense
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "InterestExpense"@en ;
+  rdfs:comment "이자비용. 차입금에 대한 이자 부담."@ko .
+
+efin:DepAmort
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "DepreciationAndAmortization"@en ;
+  rdfs:comment "감가상각비 및 무형자산상각비. 유무형 자산의 가치 감소분."@ko .
+
+efin:LongTermDebt
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "LongTermDebt"@en ;
+  rdfs:comment "장기부채. 1년 초과 상환 부채."@ko .
+
+efin:ShortTermDebt
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "ShortTermDebt"@en ;
+  rdfs:comment "단기부채(단기차입금). 1년 이내 상환 부채."@ko .
+
+efin:DebtCurrent
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  owl:equivalentClass efin:ShortTermDebt ;
+  rdfs:label "DebtCurrent"@en ;
+  rdfs:comment "유동부채(현재 부채). ShortTermDebt와 동등하게 사용됨. 1년 이내 상환 의무가 있는 단기차입금을 나타냄."@ko .
+
+efin:GrossProfit
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "GrossProfit"@en ;
+  rdfs:comment "매출총이익. Revenue - CostOfGoodsSold. 제품/서비스 판매의 직접 수익성."@ko .
+
+efin:DilutedShares
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "WeightedAverageDilutedShares"@en ;
+  rdfs:comment "가중평균 희석 주식수. 잠재적 희석증권을 고려한 발행주식수."@ko .
+
+efin:CurrentAssets
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Current Assets"@en ;
+  rdfs:comment "유동자산. 1년 이내 현금화 가능한 자산(현금, 매출채권, 재고 등)."@ko .
+
+efin:CurrentLiabilities
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Current Liabilities"@en ;
+  rdfs:comment "유동부채. 1년 이내 상환 의무가 있는 부채(단기차입금, 매입채무 등)."@ko .
+
+efin:Inventories
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Inventories"@en ;
+  rdfs:comment "재고자산. 판매 대기 중인 제품 및 원재료."@ko .
+
+efin:AccountsReceivable
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Accounts Receivable"@en ;
+  rdfs:comment "매출채권. 고객에게 회수할 판매대금."@ko .
+
+efin:CostOfGoodsSold
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Cost of Goods Sold"@en ;
+  rdfs:comment "매출원가(COGS). 제품 생산/판매의 직접 비용. GrossProfit = Revenue - COGS 관계."@ko .
+
+efin:IncomeTaxExpense
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Income Tax Expense"@en ;
+  rdfs:comment "법인세비용. 과세소득에 대한 세금 부담."@ko .
+
+efin:PreTaxIncome
+  a owl:Class ;
+  rdfs:subClassOf efin:BaseMetric ;
+  rdfs:label "Pre-Tax Income"@en ;
+  rdfs:comment "세전이익(EBT, Earnings Before Tax). 법인세 차감 전 이익. NetIncome + IncomeTaxExpense 관계"@ko .
+
+### 파생 메트릭 클래스
+# 기본 메트릭으로부터 계산되는 파생 지표들
+# 수익성 지표: GrossMargin, OperatingMargin, NetProfitMargin, ROE, ROIC 등
+# 성장률 지표: RevenueGrowthYoY, NetIncomeGrowthYoY, CFOGrowthYoY 등
+# 유동성/활동성 지표: CurrentRatio, QuickRatio, 각종 Turnover 비율
+# 레버리지 지표: DebtToEquity, InterestCoverage 등
+# 현금흐름 지표: FreeCashFlow, EBITDA 등
+# 각 메트릭은 계산 공식(hasFormulaNote)을 포함합니다.
+
+efin:RevenueGrowthYoY
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "RevenueGrowthYoY"@en ;
+  rdfs:comment "연간 매출 성장률."@ko ;
+  efin:hasFormulaMath "Growth_t = (Revenue_t - Revenue_{t-1}) / Revenue_{t-1}"@en ;
+  efin:hasFormulaNote "전년 대비 매출 증가율. 양수면 성장, 음수면 감소."@ko .
+
+efin:GrossMargin
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "GrossMargin"@en ;
+  rdfs:comment "매출총이익률."@ko ;
+  efin:hasFormulaMath "GrossMargin = GrossProfit / Revenue"@en ;
+  efin:hasFormulaNote "매출 대비 매출총이익 비율. 제품/서비스의 직접 수익성 지표."@ko .
+
+efin:OperatingMargin
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "OperatingMargin"@en ;
+  rdfs:comment "영업이익률."@ko ;
+  efin:hasFormulaMath "OperatingMargin = OperatingIncome / Revenue"@en ;
+  efin:hasFormulaNote "매출 대비 영업이익 비율. 본업의 수익성 지표."@ko .
+
+efin:NetProfitMargin
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "NetProfitMargin"@en ;
+  rdfs:comment "순이익률."@ko ;
+  efin:hasFormulaMath "NetProfitMargin = NetIncome / Revenue"@en ;
+  efin:hasFormulaNote "매출 대비 순이익 비율. 최종 수익성 지표."@ko .
+
+efin:ROE
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "ROE"@en ;
+  rdfs:comment "자기자본이익률(Return on Equity)."@ko ;
+  efin:hasFormulaMath "ROE = NetIncome / Equity, where Equity = (Equity_t + Equity_{t-1}) / 2"@en ;
+  efin:hasFormulaNote "평균 자기자본 대비 순이익 비율. 주주 투자 수익률 지표."@ko .
+
+efin:FreeCashFlow
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedMetric ;
+  rdfs:label "FreeCashFlow"@en ;
+  rdfs:comment "잉여현금흐름."@ko ;
+  efin:hasFormulaMath "FCF = CFO - CapEx"@en ;
+  efin:hasFormulaNote "영업현금흐름에서 자본적 지출을 차감한 자유현금흐름. 실제 가용 현금 지표."@ko .
+
+efin:EBITDA
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedMetric ;
+  rdfs:label "EBITDA"@en ;
+  rdfs:comment "이자·세금·감가상각비 차감 전 이익."@ko ;
+  efin:hasFormulaMath "EBITDA ≈ OperatingIncome + DepreciationAndAmortization"@en ;
+  efin:hasFormulaNote "영업이익에 감가상각비를 가산한 현금흐름 기반 수익성 지표. 근사치."@ko .
+
+efin:EBITDAMargin
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "EBITDAMargin"@en ;
+  rdfs:comment "EBITDA 마진."@ko ;
+  efin:hasFormulaMath "EBITDAMargin = EBITDA / Revenue"@en ;
+  efin:hasFormulaNote "매출 대비 EBITDA 비율. 현금흐름 기반 수익성 지표."@ko .
+
+efin:InterestCoverage
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "InterestCoverage"@en ;
+  rdfs:comment "이자보상배율."@ko ;
+  efin:hasFormulaMath "InterestCoverage = EBIT / InterestExpense"@en ;
+  efin:hasFormulaNote "영업이익(EBIT)으로 이자비용을 몇 배 감당할 수 있는지 나타내는 부채상환능력 지표."@ko .
+
+efin:DebtToEquity
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "DebtToEquity"@en ;
+  rdfs:comment "부채비율."@ko ;
+  efin:hasFormulaMath "D/E = (LongTermDebt + ShortTermDebt) / Equity"@en ;
+  efin:hasFormulaNote "총부채 대비 자기자본 비율. 레버리지 지표. ShortTermDebt 대신 DebtCurrent 사용 가능."@ko .
+
+efin:NOPAT
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedMetric ;
+  rdfs:label "NOPAT"@en ;
+  rdfs:comment "세후순영업이익(Net Operating Profit After Tax)."@ko ;
+  efin:hasFormulaMath "NOPAT = OperatingIncome x (1 - τ), where τ ≈ IncomeTaxExpense / PreTaxIncome"@en ;
+  efin:hasFormulaNote "영업이익에서 세금효과를 제거한 순영업이익. τ는 실효세율."@ko .
+
+efin:InvestedCapital
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedMetric ;
+  rdfs:label "Invested Capital"@en ;
+  rdfs:comment "투하자본."@ko ;
+  efin:hasFormulaMath "IC ≈ (LongTermDebt + ShortTermDebt) + Equity - Cash"@en ;
+  efin:hasFormulaNote "사업에 투입된 총자본. 부채와 자본의 합에서 현금성자산 차감. ShortTermDebt 대신 DebtCurrent 사용 가능."@ko .
+
+efin:CurrentRatio
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "Current Ratio"@en ;
+  rdfs:comment "유동비율."@ko ;
+  efin:hasFormulaMath "CurrentRatio = CurrentAssets / CurrentLiabilities"@en ;
+  efin:hasFormulaNote "유동자산으로 유동부채를 몇 배 감당할 수 있는지 나타내는 단기 지급능력 지표."@ko .
+
+efin:QuickRatio
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "Quick Ratio"@en ;
+  rdfs:comment "당좌비율."@ko ;
+  efin:hasFormulaMath "QuickRatio = (CurrentAssets - Inventories) / CurrentLiabilities"@en ;
+  efin:hasFormulaNote "재고를 제외한 유동자산의 유동부채 감당 능력. CurrentRatio보다 보수적 지표."@ko .
+
+efin:InventoryTurnover
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "Inventory Turnover"@en ;
+  rdfs:comment "재고회전율."@ko ;
+  efin:hasFormulaMath "InventoryTurnover = COGS / Inventories̅, where Inventories̅ = (Inventories_t + Inventories_{t-1}) / 2"@en ;
+  efin:hasFormulaNote "평균 재고자산 대비 매출원가 비율. 재고 효율성 지표."@ko .
+
+efin:ReceivablesTurnover
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "Receivables Turnover"@en ;
+  rdfs:comment "매출채권회전율."@ko ;
+  efin:hasFormulaMath "ReceivablesTurnover = Revenue / AR̅, where AR̅ = (AccountsReceivable_t + AccountsReceivable_{t-1}) / 2"@en ;
+  efin:hasFormulaNote "평균 매출채권 대비 매출액 비율. 채권 회수 효율성 지표."@ko .
+
+efin:OperatingCashFlowRatio
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "Operating Cash Flow Ratio"@en ;
+  rdfs:comment "영업현금흐름비율."@ko ;
+  efin:hasFormulaMath "OCFRatio = CFO / CurrentLiabilities"@en ;
+  efin:hasFormulaNote "영업활동 현금흐름으로 유동부채를 감당하는 능력. 현금기반 유동성 지표."@ko .
+
+efin:EquityRatio
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "Equity Ratio"@en ;
+  rdfs:comment "자기자본비율."@ko ;
+  efin:hasFormulaMath "EquityRatio = Equity / Assets"@en ;
+  efin:hasFormulaNote "총자산 대비 자기자본 비율. 재무 안전성 지표."@ko .
+
+efin:AssetTurnover
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "Asset Turnover"@en ;
+  rdfs:comment "총자산회전율."@ko ;
+  efin:hasFormulaMath "AssetTurnover = Revenue / Assets̅, where Assets̅ = (Assets_t + Assets_{t-1}) / 2"@en ;
+  efin:hasFormulaNote "평균 총자산 대비 매출액 비율. 자산 활용 효율성 지표."@ko .
+
+efin:NetIncomeGrowthYoY
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "Net Income Growth YoY"@en ;
+  rdfs:comment "연간 순이익 성장률."@ko ;
+  efin:hasFormulaMath "Growth_t = (NetIncome_t - NetIncome_{t-1}) / NetIncome_{t-1}"@en ;
+  efin:hasFormulaNote "전년 대비 순이익 증가율. 수익성 성장 지표."@ko .
+
+efin:CFOGrowthYoY
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "CFO Growth YoY"@en ;
+  rdfs:comment "연간 영업현금흐름 성장률."@ko ;
+  efin:hasFormulaMath "Growth_t = (CFO_t - CFO_{t-1}) / CFO_{t-1}"@en ;
+  efin:hasFormulaNote "전년 대비 영업현금흐름 증가율. 현금창출 성장 지표."@ko .
+
+efin:AssetGrowthRate
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "Asset Growth Rate"@en ;
+  rdfs:comment "총자산 성장률."@ko ;
+  efin:hasFormulaMath "Growth_t = (Assets_t - Assets_{t-1}) / Assets_{t-1}"@en ;
+  efin:hasFormulaNote "전년 대비 총자산 증가율. 기업 규모 성장 지표."@ko .
+
+efin:ROIC
+  a owl:Class ;
+  rdfs:subClassOf efin:DerivedRatio ;
+  rdfs:label "ROIC"@en ;
+  rdfs:comment "투하자본이익률(Return on Invested Capital)."@ko ;
+  efin:hasFormulaMath "ROIC = NOPAT / IC̅"@en ;
+  efin:hasFormulaNote "평균 투하자본 대비 세후순영업이익 비율. 자본 투자 효율성 지표."@ko .
+
+#################################################################
+# 구조/관계 기반 Company 파생 클래스
+#################################################################
+# 예: 특정 섹터/업종에서 Revenue 기준 Top10 랭킹을 가진 기업 등.
+
+efin:IndustryCompositeTop10LeaderCompany
+  a owl:Class ;
+  rdfs:subClassOf efin:Company ;
+  rdfs:label "Industry Composite Score Top10 Leader Company"@en ;
+  rdfs:comment "각 업종에서 Composite 스코어 기반 Top10(efin:IndustryTopRanking, hasRankingType \"Top10\") 랭킹을 가진 회사. Composite 스코어는 여러 핵심 메트릭을 정규화·합산한 종합 점수."@ko ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:Company
+      [
+        a owl:Restriction ;
+        owl:onProperty efin:hasRanking ;
+        owl:someValuesFrom [
+          a owl:Class ;
+          owl:intersectionOf (
+            efin:IndustryTopRanking
+            [ a owl:Restriction ;
+              owl:onProperty efin:forMetric ;
+              owl:hasValue efin:Composite
+            ]
+            [ a owl:Restriction ;
+              owl:onProperty efin:forIndustry ;
+              owl:someValuesFrom efin:Industry
+            ]
+            [ a owl:Restriction ;
+              owl:onProperty efin:hasRankingType ;
+              owl:hasValue "Top10"
+            ]
+          )
+        ]
+      ]
+    )
+  ] .
+
+efin:AllCompositeTop10LeaderCompany
+  a owl:Class ;
+  rdfs:subClassOf efin:Company ;
+  rdfs:label "All-Market Composite Score Top10 Leader Company"@en ;
+  rdfs:comment "전체 시장(SectorAll)에서 Composite 스코어 기반 Top10(efin:AllTopRanking, hasRankingType \"Top10\") 랭킹을 가진 회사. Composite 스코어는 여러 핵심 메트릭을 정규화·합산한 종합 점수."@ko ;
+  owl:equivalentClass [
+    a owl:Class ;
+    owl:intersectionOf (
+      efin:Company
+      [
+        a owl:Restriction ;
+        owl:onProperty efin:hasRanking ;
+        owl:someValuesFrom [
+          a owl:Class ;
+          owl:intersectionOf (
+            efin:AllTopRanking
+            [ a owl:Restriction ;
+              owl:onProperty efin:forMetric ;
+              owl:hasValue efin:Composite
+            ]
+            [ a owl:Restriction ;
+              owl:onProperty efin:forSector ;
+              owl:hasValue efin:SectorAll
+            ]
+            [ a owl:Restriction ;
+              owl:onProperty efin:hasRankingType ;
+              owl:hasValue "Top10"
+            ]
+          )
+        ]
+      ]
+    )
+  ] .
+
+#################################################################
+# Object Properties
+#################################################################
+# 이 섹션은 클래스 간의 관계를 정의하는 객체 속성들을 포함합니다.
+#
+# 주요 관계:
+# - ofCompany, observesMetric: MetricObservation과 Company/Metric 연결
+# - inSector, inIndustry: Company의 분류 체계
+# - computedFrom*: 파생 지표의 계보 추적
+# - forIndustry, forSector, forMetric: 벤치마크/랭킹의 대상 지정
+# - hasUnit, hasCurrency: 측정 단위 및 통화 연결
+# - hasObservation, observedBy: 역방향 관계
+
+efin:ofCompany
+  a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range efin:Company ;
+  rdfs:label "ofCompany"@en ;
+  rdfs:comment "관측값이 속한 회사. 함수형 속성으로 각 관측값은 정확히 하나의 회사에만 연결됨. hasObservation의 역관계."@ko .
+
+efin:observesMetric
+  a owl:ObjectProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range efin:Metric ;
+  rdfs:label "observesMetric"@en ;
+  rdfs:comment "관측값이 측정하는 메트릭. 함수형 속성으로 각 관측값은 정확히 하나의 메트릭만 측정. observedBy의 역관계."@ko .
+
+efin:inSector
+  a owl:ObjectProperty ;
+  rdfs:domain efin:Company ;
+  rdfs:range efin:Sector ;
+  rdfs:label "inSector"@en ;
+  rdfs:comment "회사를 해당 섹터에 연결. 섹터 단위 벤치마크 비교 및 산업 분류를 위한 상위 범주 관계."@ko .
+
+efin:inIndustry
+  a owl:ObjectProperty ;
+  rdfs:domain efin:Company ;
+  rdfs:range efin:Industry ;
+  rdfs:label "inIndustry"@en ;
+  rdfs:comment "회사를 해당 산업에 연결. 산업 단위 벤치마크 비교를 위한 세분화된 분류 관계."@ko .
+
+efin:inSectorOf
+  a owl:ObjectProperty , owl:AsymmetricProperty ;
+  rdfs:domain efin:Industry ;
+  rdfs:range efin:Sector ;
+  rdfs:label "inSectorOf"@en ;
+  rdfs:comment "산업을 상위 섹터에 연결(비대칭). 비대칭 속성으로 정의되어 순환 참조 방지."@ko .
+
+efin:computedFromMetric
+  a owl:ObjectProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range efin:Metric ;
+  rdfs:label "computedFromMetric"@en ;
+  rdfs:comment "파생 관측값이 참조한 입력 메트릭 개념. 예: ROE 관측값이 NetIncome과 Equity 메트릭을 참조."@ko .
+
+efin:forIndustry
+  a owl:ObjectProperty ;
+  rdfs:domain [ owl:unionOf (efin:IndustryBenchmark efin:IndustryTopRanking) ] ;
+  rdfs:range efin:Industry ;
+  rdfs:label "forIndustry"@en ;
+  rdfs:comment "벤치마크/랭킹의 대상 산업. 해당 산업에 속한 기업들의 집계 통계 또는 순위 결과를 나타냄."@ko .
+
+efin:forSector
+  a owl:ObjectProperty ;
+  rdfs:domain [ owl:unionOf (efin:AllBenchmark efin:AllTopRanking) ] ;
+  rdfs:range efin:Sector ;
+  rdfs:label "forSector"@en ;
+  rdfs:comment "벤치마크/랭킹의 대상 섹터. 전체 시장(SectorAll)에 속한 기업들의 집계 통계나 순위 결과를 나타냄."@ko .
+
+efin:forMetric
+  a owl:ObjectProperty ;
+  rdfs:domain [ owl:unionOf (efin:Benchmark efin:Ranking) ] ;
+  rdfs:range efin:Metric ;
+  rdfs:label "forMetric"@en ;
+  rdfs:comment "벤치마크/랭킹의 대상 메트릭. 어떤 재무 지표에 대한 통계인지를 명시(예: ROE, RevenueGrowth 등)."@ko .
+
+efin:hasBenchmark
+  a owl:ObjectProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range efin:Benchmark ;
+  rdfs:label "hasBenchmark"@en ;
+  rdfs:comment "관측값을 해당 스코프(산업/섹터/전체 시장)의 벤치마크에 연결. 개별 기업 지표와 동종 업계 또는 전체 시장 평균/중앙값을 비교 가능하게 함."@ko .
+
+efin:hasRanking
+  a owl:ObjectProperty ;
+  rdfs:domain efin:Company ;
+  rdfs:range efin:TopRanking ;
+  rdfs:label "hasRanking"@en ;
+  rdfs:comment "회사를 랭킹 결과에 연결. 산업/섹터 내 상대적 위치(Top10, Top50 등) 정보를 제공."@ko .
+
+efin:hasUnit
+  a owl:ObjectProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range efin:Unit ;
+  rdfs:label "hasUnit"@en ;
+  rdfs:comment "관측값의 단위(객체 속성). 예: unit:USD, unit:PERCENT 등과 sameAs 매핑 가능."@ko .
+
+efin:hasCurrency
+  a owl:ObjectProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range efin:Currency ;
+  rdfs:label "hasCurrency"@en ;
+  rdfs:comment "관측값의 통화 단위(객체 속성). 예: USD, EUR, KRW."@ko .
+
+efin:hasXbrlConcept
+  a owl:ObjectProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range efin:XBRLConcept ;
+  rdfs:label "hasXbrlConcept"@en ;
+  rdfs:comment "관측에 사용된 XBRL 개념 연결. SEC EDGAR XBRL 택소노미의 원본 태그(QName, 네임스페이스 등)와의 추적성 확보."@ko .
+
+efin:hasObservation
+  a owl:ObjectProperty ;
+  rdfs:domain efin:Company ;
+  rdfs:range efin:MetricObservation ;
+  rdfs:label "hasObservation"@en ;
+  rdfs:comment "기업이 가진 관측값(역방향 연결). ofCompany의 역속성으로, 한 기업의 모든 시계열 재무 데이터를 탐색."@ko .
+
+efin:observedBy
+  a owl:ObjectProperty ;
+  rdfs:domain efin:Metric ;
+  rdfs:range efin:MetricObservation ;
+  rdfs:label "observedBy"@en ;
+  rdfs:comment "메트릭을 관측한 관측값(역방향 연결). observesMetric의 역속성으로, 특정 메트릭의 모든 관측 인스턴스를 탐색."@ko .
+
+#################################################################
+# Datatype Properties
+#################################################################
+# 이 섹션은 리터럴 값(문자열, 숫자, 날짜 등)을 속성으로 정의합니다.
+#
+# 주요 속성 그룹:
+# - Company 식별자: hasCIK, hasTicker, hasCompanyName, hasSIC 등
+# - Observation 속성: hasFiscalYear, hasPeriodType, hasNumericValue 등
+# - 메타데이터: hasFormulaNote
+# - 벤치마크 통계: hasAverageValue, hasMedianValue, hasPercentile* 등
+# - 랭킹 속성: hasRank, hasRankingValue, hasCompositeScore
+# - XBRL 메타데이터: hasQName, hasNamespace, hasConceptLabel
+
+efin:hasCIK
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Company ;
+  rdfs:range xsd:string ;
+  rdfs:label "hasCIK"@en ;
+  rdfs:comment "SEC Central Index Key(CIK). SEC 특화 식별자."@ko .
+
+efin:hasTicker
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Company ;
+  rdfs:range xsd:string ;
+  rdfs:label "hasTicker"@en ;
+  rdfs:comment "거래소 티커(=symbol)."@ko .
+
+efin:hasCompanyName
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Company ;
+  rdfs:range xsd:string ;
+  rdfs:label "hasCompanyName"@en ;
+  rdfs:comment "회사 공식 명칭(FIBO hasLegalName과 매핑 가능)."@ko .
+
+efin:hasSIC
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Company ;
+  rdfs:range xsd:string ;
+  rdfs:label "hasSIC"@en ;
+  rdfs:comment "표준 산업 분류 코드(Standard Industrial Classification)."@ko .
+
+efin:hasSICDescription
+  a owl:AnnotationProperty ;
+  rdfs:label "hasSICDescription"@en ;
+  rdfs:comment "SIC 코드에 대한 설명 텍스트."@ko .
+
+efin:hasFiscalYearEnd
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Company ;
+  rdfs:range xsd:string ;
+  rdfs:label "hasFiscalYearEnd"@en ;
+  rdfs:comment "회계연도 종료일 텍스트(예: 1231)."@ko .
+
+efin:hasFiscalYear
+  a owl:DatatypeProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range xsd:integer ;
+  rdfs:label "hasFiscalYear"@en ;
+  rdfs:comment "관측 회계연도. 관측값 자체의 시간 식별자로, 데이터가 '언제에 대한 것인지'를 나타냄. Filing의 filingDate(보고 시점)와 독립적. 함수형 속성으로 각 관측값은 정확히 하나의 회계연도를 가짐. (회사, 메트릭, 회계연도) 복합키의 일부."@ko .
+
+efin:hasPeriodType
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range xsd:string ;
+  rdfs:label "hasPeriodType"@en ;
+  rdfs:comment "기간 유형: 'duration'(기간 누적값) 또는 'instant'(특정 시점 잔액). 이 값에 따라 DurationObservation/InstantObservation으로 자동 분류."@ko .
+
+efin:hasPeriodEnd
+  a owl:DatatypeProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range xsd:dateTime ;
+  rdfs:label "hasPeriodEnd"@en ;
+  rdfs:comment "관측 종료일. duration인 경우 기간의 마지막 날, instant인 경우 잔액 기준일. 관측 데이터의 시간적 경계를 나타내며, Filing의 filingDate(보고 시점)와 구별됨. 정확한 시점 식별을 위한 필수 정보."@ko .
+
+efin:hasNumericValue
+  a owl:DatatypeProperty , owl:FunctionalProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range xsd:double ;
+  rdfs:label "hasNumericValue"@en ;
+  rdfs:comment "관측 수치값. 함수형 속성으로 각 관측값은 정확히 하나의 숫자를 가짐. hasUnit/hasCurrency와 함께 완전한 측정값 구성."@ko .
+
+efin:isDerived
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range xsd:boolean ;
+  rdfs:label "isDerived"@en ;
+  rdfs:comment "파생 관측 여부 플래그. true면 다른 메트릭으로부터 계산된 값, false면 XBRL에서 직접 추출된 값."@ko .
+
+efin:hasFormulaNote
+  a owl:AnnotationProperty ;
+  rdfs:label "hasFormulaNote"@en ;
+  rdfs:comment "파생 메트릭 클래스의 자연어 설명(주석 속성). 공식의 의미와 계산 맥락을 설명. 클래스 메타데이터로 사용되며 추론에 영향을 주지 않음. hasFormulaMath와 함께 사용 권장."@ko .
+
+efin:hasFormulaMath
+  a owl:AnnotationProperty ;
+  rdfs:label "hasFormulaMath"@en ;
+  rdfs:comment "표준 수학 표기법 공식(주석 속성). 유니코드 수학 기호 사용 (-, x, ≈ 등). 일관된 표기 규칙으로 기계 가독성 및 시각적 명확성 확보. 클래스 메타데이터로 사용되며 추론에 영향을 주지 않음."@ko .
+
+efin:forFiscalYear
+  a owl:DatatypeProperty ;
+  rdfs:domain [ owl:unionOf (efin:Benchmark efin:Ranking) ] ;
+  rdfs:range xsd:integer ;
+  rdfs:label "forFiscalYear"@en ;
+  rdfs:comment "벤치마크/랭킹의 기준 회계연도. 해당 연도의 기업 데이터를 집계하여 산출된 통계임을 명시."@ko .
+
+efin:hasAverageValue
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Benchmark ;
+  rdfs:range xsd:double ;
+  rdfs:label "hasAverageValue"@en ;
+  rdfs:comment "평균값(산술평균). 산업/섹터 내 모든 기업의 메트릭 평균으로, 중심 경향 파악에 사용."@ko .
+
+efin:hasMedianValue
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Benchmark ;
+  rdfs:range xsd:double ;
+  rdfs:label "hasMedianValue"@en ;
+  rdfs:comment "중앙값. 이상치(outlier)에 강건한 중심 경향 지표로, 평균과 함께 분포 특성 파악."@ko .
+
+efin:hasMaxValue
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Benchmark ;
+  rdfs:range xsd:double ;
+  rdfs:label "hasMaxValue"@en ;
+  rdfs:comment "최대값."@ko .
+
+efin:hasMinValue
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Benchmark ;
+  rdfs:range xsd:double ;
+  rdfs:label "hasMinValue"@en ;
+  rdfs:comment "최소값."@ko .
+
+efin:hasPercentile25
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Benchmark ;
+  rdfs:range xsd:double ;
+  rdfs:label "hasPercentile25"@en ;
+  rdfs:comment "25백분위수."@ko .
+
+efin:hasPercentile75
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Benchmark ;
+  rdfs:range xsd:double ;
+  rdfs:label "hasPercentile75"@en ;
+  rdfs:comment "75백분위수."@ko .
+
+efin:hasSampleSize
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:Benchmark ;
+  rdfs:range xsd:integer ;
+  rdfs:label "hasSampleSize"@en ;
+  rdfs:comment "표본 크기(회사 수). 통계 산출에 포함된 기업 수로, 통계적 신뢰도 판단의 기준."@ko .
+
+efin:hasRankingType
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:TopRanking ;
+  rdfs:range xsd:string ;
+  rdfs:label "hasRankingType"@en ;
+  rdfs:comment "랭킹 유형: 'Top10', 'Top50', 'Top100' 또는 'Composite'. Composite는 여러 메트릭을 종합한 순위."@ko .
+
+efin:hasRank
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:TopRanking ;
+  rdfs:range xsd:integer ;
+  rdfs:label "hasRank"@en ;
+  rdfs:comment "순위(1부터 시작). 산업/섹터/전체 스코프 내에서의 상대적 위치를 나타냄."@ko .
+
+efin:hasRankingValue
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:TopRanking ;
+  rdfs:range xsd:double ;
+  rdfs:label "hasRankingValue"@en ;
+  rdfs:comment "랭킹 산출에 사용된 메트릭 값. 단일 메트릭 기준 랭킹일 때 사용."@ko .
+
+efin:hasCompositeScore
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:TopRanking ;
+  rdfs:range xsd:double ;
+  rdfs:label "hasCompositeScore"@en ;
+  rdfs:comment "종합 점수(여러 메트릭의 정규화 점수 합산). 복합 메트릭 기준 랭킹일 때 사용."@ko .
+
+efin:hasQName
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:XBRLConcept ;
+  rdfs:range xsd:string ;
+  rdfs:label "hasQName"@en ;
+  rdfs:comment "XBRL 개념의 QName(Qualified Name). 네임스페이스 접두사와 로컬 이름의 조합(예: us-gaap:Revenue)."@ko .
+
+efin:hasNamespace
+  a owl:AnnotationProperty ;
+  rdfs:label "hasNamespace"@en ;
+  rdfs:comment "XBRL 개념의 네임스페이스 URI. 택소노미 출처 식별(예: http://fasb.org/us-gaap/2023)."@ko .
+
+efin:hasConceptLabel
+  a owl:AnnotationProperty ;
+  rdfs:label "hasConceptLabel"@en ;
+  rdfs:comment "XBRL 개념의 레이블. 사람이 읽을 수 있는 XBRL 요소의 설명 텍스트."@ko .
+
+efin:hasQuarter
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range xsd:integer ;
+  rdfs:label "hasQuarter"@en ;
+  rdfs:comment "회계 분기 (1, 2, 3, 4). 분기 데이터의 경우 필수이며, 연간 데이터의 경우 생략 가능. (회사, 메트릭, 회계연도, 분기) 조합으로 분기별 관측값 식별."@ko .
+
+efin:hasSourceType
+  a owl:DatatypeProperty ;
+  rdfs:domain efin:MetricObservation ;
+  rdfs:range xsd:string ;
+  rdfs:label "hasSourceType"@en ;
+  rdfs:comment "데이터 소스 유형 (예: 'annual', 'quarterly', 'derived-growth', 'derived-ratio'). XBRL 직접 추출, 파생 계산, 또는 추론 등 데이터 생성 방식을 분류."@ko .
+
+### accessionNumber property removed
+
+### filingDate property removed
+
+### fiscalPeriod property removed
+
+### hasFormType property removed
+
+#################################################################
+# Axioms and Constraints
+#################################################################
+# 온톨로지의 의미론적 제약조건과 공리를 정의하여 데이터 일관성과 추론 가능성을 보장합니다.
+
+### 분리 제약 (Disjointness)
+# 상호 배타적인 클래스 집합을 정의합니다.
+
+efin:BaseMetric
+  owl:disjointWith efin:DerivedMetric .
+
+efin:DurationObservation
+  owl:disjointWith efin:InstantObservation .
+
+### 완전 분할 (Complete Coverage)
+# 상위 클래스가 하위 클래스들의 합집합과 동일함을 명시
+# 모든 Metric은 반드시 BaseMetric 또는 DerivedMetric 중 하나
+
+efin:Metric
+  owl:equivalentClass [ owl:unionOf (efin:BaseMetric efin:DerivedMetric) ] .
+
+### 역 속성 (Inverse Properties)
+# 양방향 탐색을 위한 역관계 정의
+# hasObservation ↔ ofCompany, observedBy ↔ observesMetric
+
+efin:hasObservation
+  owl:inverseOf efin:ofCompany .
+
+efin:observedBy
+  owl:inverseOf efin:observesMetric .
+
+### 카디널리티 제약 (Cardinality Constraints)
+# MetricObservation이 가져야 하는 최소 필수 속성 집합을 정의합니다.
+
+efin:MetricObservation
+  rdfs:subClassOf [
+    owl:onProperty efin:ofCompany ;
+    owl:minCardinality 1
+  ] .
+
+efin:MetricObservation
+  rdfs:subClassOf [
+    owl:onProperty efin:observesMetric ;
+    owl:minCardinality 1
+  ] .
+
+efin:MetricObservation
+  rdfs:subClassOf [
+    owl:onProperty efin:hasFiscalYear ;
+    owl:minCardinality 1
+  ] .
+
+efin:MetricObservation
+  rdfs:subClassOf [
+    owl:onProperty efin:hasNumericValue ;
+    owl:minCardinality 1
+  ] .
+
+efin:MetricObservation
+  rdfs:subClassOf [
+    owl:onProperty efin:hasPeriodType ;
+    owl:minCardinality 1
+  ] .
+
+### 기간 유형 클래스 정의 (Value Restrictions)
+# hasPeriodType 값("duration", "instant")에 따라 관측값을 자동으로 분류합니다.
+
+efin:DurationObservation
+  owl:equivalentClass [
+    owl:intersectionOf (
+      efin:MetricObservation
+      [ owl:onProperty efin:hasPeriodType ; owl:hasValue "duration" ]
+    )
+  ] .
+
+efin:InstantObservation
+  owl:equivalentClass [
+    owl:intersectionOf (
+      efin:MetricObservation
+      [ owl:onProperty efin:hasPeriodType ; owl:hasValue "instant" ]
+    )
+  ] .
+
+### 키 제약 (Key Constraints)
+# 복합 키를 통한 고유성 보장
+# (회사 + 메트릭 + 회계연도 + 분기) 조합이 각 관측값을 고유하게 식별
+# hasQuarter는 선택적 속성이므로, 연간 데이터(분기 미지정)와 분기 데이터(분기 지정) 모두 지원
+# 동일한 (회사, 메트릭, 회계연도)를 가진 연간 데이터는 단일 관측값으로 간주
+# 동일한 (회사, 메트릭, 회계연도, 분기)를 가진 분기 데이터는 단일 관측값으로 간주
+
+efin:MetricObservation
+  owl:hasKey ( efin:ofCompany efin:observesMetric efin:hasFiscalYear efin:hasQuarter ) .

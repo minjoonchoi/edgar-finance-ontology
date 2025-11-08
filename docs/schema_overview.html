@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>EDGAR Financial Ontology Schema</title>
+  <style>
+    :root { --primary: #1976d2; --bg: #fafafa; }
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; margin: 0; padding: 2rem; background: var(--bg); color: #333; }
+    h1 { color: var(--primary); border-bottom: 3px solid var(--primary); padding-bottom: 0.5rem; }
+    h2 { color: #455a64; margin-top: 2rem; }
+    .chart-container { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin: 1.5rem 0; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    th { background: #e3f2fd; color: #1565c0; font-weight: 600; text-align: left; padding: 12px 16px; }
+    td { padding: 10px 16px; border-top: 1px solid #e0e0e0; vertical-align: top; font-size: 0.9rem; }
+    tr:hover td { background: #f5f5f5; }
+    .legend { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
+    .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+    .legend-color { width: 18px; height: 18px; border-radius: 4px; border: 2px solid; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin: 1rem 0; }
+    .stat-card { background: white; padding: 1rem; border-radius: 8px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .stat-number { font-size: 1.8rem; font-weight: bold; color: var(--primary); }
+    .stat-label { color: #666; font-size: 0.8rem; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+    .section-title { display: flex; align-items: center; gap: 0.5rem; }
+    .badge { background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+  <h1>📊 EDGAR Financial Ontology Overview</h1>
+  <p><code>ontology/efin_schema.ttl</code> 스키마 및 <code>ontology/efin_instances.ttl</code> 인스턴스 통계</p>
+  
+  <h2>Schema Statistics</h2>
+  <div class="stats">
+    <div class="stat-card"><div class="stat-number">70</div><div class="stat-label">Total Classes</div></div>
+    <div class="stat-card"><div class="stat-number">16</div><div class="stat-label">Object Properties</div></div>
+    <div class="stat-card"><div class="stat-number">25</div><div class="stat-label">Datatype Properties</div></div>
+    <div class="stat-card"><div class="stat-number">2</div><div class="stat-label">Disjoint Pairs</div></div>
+  </div>
+
+  <h2>Instance Statistics</h2>
+  <div class="stats">
+    <div class="stat-card"><div class="stat-number">253,531</div><div class="stat-label">Total Triples</div></div>
+    <div class="stat-card"><div class="stat-number">22,498</div><div class="stat-label">Class Instances</div></div>
+    <div class="stat-card"><div class="stat-number">231,029</div><div class="stat-label">Property Usages</div></div>
+    <div class="stat-card"><div class="stat-number">11</div><div class="stat-label">Instantiated Classes</div></div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <h3>Instances by Class</h3>
+      <table>
+<thead><tr><th>Group</th><th>Class</th><th style="text-align:right">Instances</th></tr></thead>
+<tbody><tr><td>Entity</td><td>Company</td><td style="text-align:right">498</td></tr><tr><td>Entity</td><td>Sector</td><td style="text-align:right">12</td></tr><tr><td>Entity</td><td>Industry</td><td style="text-align:right">180</td></tr><tr style="background:#f0f0f0;font-weight:600"><td colspan="2">Entity 소계</td><td style="text-align:right">690</td></tr><tr><td>Metric</td><td>Metric</td><td style="text-align:right">-</td></tr><tr><td>Metric</td><td>BaseMetric</td><td style="text-align:right">-</td></tr><tr><td>Metric</td><td>DerivedMetric</td><td style="text-align:right">-</td></tr><tr><td>Metric</td><td>DerivedRatio</td><td style="text-align:right">-</td></tr><tr style="background:#f0f0f0;font-weight:600"><td colspan="2">Metric 소계</td><td style="text-align:right">0</td></tr><tr><td>Observation</td><td>MetricObservation</td><td style="text-align:right">18,113</td></tr><tr><td>Observation</td><td>DurationObservation</td><td style="text-align:right">-</td></tr><tr><td>Observation</td><td>InstantObservation</td><td style="text-align:right">-</td></tr><tr style="background:#f0f0f0;font-weight:600"><td colspan="2">Observation 소계</td><td style="text-align:right">18,113</td></tr><tr><td>Benchmark</td><td>Benchmark</td><td style="text-align:right">-</td></tr><tr><td>Benchmark</td><td>IndustryBenchmark</td><td style="text-align:right">559</td></tr><tr><td>Benchmark</td><td>AllBenchmark</td><td style="text-align:right">6</td></tr><tr style="background:#f0f0f0;font-weight:600"><td colspan="2">Benchmark 소계</td><td style="text-align:right">565</td></tr><tr><td>Ranking</td><td>Ranking</td><td style="text-align:right">-</td></tr><tr><td>Ranking</td><td>TopRanking</td><td style="text-align:right">-</td></tr><tr><td>Ranking</td><td>IndustryTopRanking</td><td style="text-align:right">3,012</td></tr><tr><td>Ranking</td><td>AllTopRanking</td><td style="text-align:right">70</td></tr><tr style="background:#f0f0f0;font-weight:600"><td colspan="2">Ranking 소계</td><td style="text-align:right">3,082</td></tr><tr><td>Metadata</td><td>Unit</td><td style="text-align:right">7</td></tr><tr><td>Metadata</td><td>Currency</td><td style="text-align:right">1</td></tr><tr><td>Metadata</td><td>FinancialReportingConcept</td><td style="text-align:right">-</td></tr><tr><td>Metadata</td><td>XBRLConcept</td><td style="text-align:right">40</td></tr><tr style="background:#f0f0f0;font-weight:600"><td colspan="2">Metadata 소계</td><td style="text-align:right">48</td></tr></tbody>
+</table>
+    </div>
+    <div>
+      <h3>Property Usage (Top 20)</h3>
+      <table>
+<thead><tr><th>Property</th><th>Type</th><th style="text-align:right">Usage Count</th></tr></thead>
+<tbody><tr><td>hasPeriodType</td><td>Datatype</td><td style="text-align:right">18,113</td></tr><tr><td>hasUnit</td><td>Object</td><td style="text-align:right">18,113</td></tr><tr><td>hasSourceType</td><td>Datatype</td><td style="text-align:right">18,113</td></tr><tr><td>isDerived</td><td>Datatype</td><td style="text-align:right">18,113</td></tr><tr><td>observesMetric</td><td>Object</td><td style="text-align:right">18,113</td></tr><tr><td>hasFiscalYear</td><td>Datatype</td><td style="text-align:right">18,113</td></tr><tr><td>hasNumericValue</td><td>Datatype</td><td style="text-align:right">18,113</td></tr><tr><td>hasPeriodEnd</td><td>Datatype</td><td style="text-align:right">18,113</td></tr><tr><td>ofCompany</td><td>Object</td><td style="text-align:right">18,113</td></tr><tr><td>computedFromMetric</td><td>Object</td><td style="text-align:right">17,067</td></tr><tr><td>hasCurrency</td><td>Object</td><td style="text-align:right">9,470</td></tr><tr><td>hasXbrlConcept</td><td>Object</td><td style="text-align:right">8,996</td></tr><tr><td>forFiscalYear</td><td>Datatype</td><td style="text-align:right">3,647</td></tr><tr><td>forMetric</td><td>Object</td><td style="text-align:right">3,647</td></tr><tr><td>forIndustry</td><td>Object</td><td style="text-align:right">3,571</td></tr><tr><td>hasRank</td><td>Datatype</td><td style="text-align:right">3,082</td></tr><tr><td>hasRanking</td><td>Object</td><td style="text-align:right">3,082</td></tr><tr><td>hasRankingType</td><td>Datatype</td><td style="text-align:right">3,082</td></tr><tr><td>hasRankingValue</td><td>Datatype</td><td style="text-align:right">2,623</td></tr><tr><td>hasPercentile25</td><td>Datatype</td><td style="text-align:right">631</td></tr></tbody>
+</table>
+    </div>
+  </div>
+
+  <h2>Class Hierarchy Graph</h2>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-color" style="background:#e3f2fd;border-color:#1976d2"></div>Entity</div>
+    <div class="legend-item"><div class="legend-color" style="background:#fff3e0;border-color:#f57c00"></div>Metric</div>
+    <div class="legend-item"><div class="legend-color" style="background:#e8f5e9;border-color:#388e3c"></div>Observation</div>
+    <div class="legend-item"><div class="legend-color" style="background:#fce4ec;border-color:#c2185b"></div>Benchmark</div>
+    <div class="legend-item"><div class="legend-color" style="background:#f3e5f5;border-color:#7b1fa2"></div>Ranking</div>
+    <div class="legend-item"><div class="legend-color" style="background:#eceff1;border-color:#546e7a"></div>Metadata</div>
+    <div class="legend-item"><div class="legend-color" style="background:#ffebee;border-color:#d32f2f;border-style:dashed"></div>Disjoint (⊥)</div>
+  </div>
+  
+  <div class="chart-container">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1840 410" style="max-width:100%;height:auto;">
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#666"/></marker></defs>
+<rect x="25" y="50" width="170" height="240" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="1.5" opacity="0.35"/>
+<text x="110.0" y="40" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#1976d2">Entity</text>
+<rect x="215" y="50" width="330" height="240" rx="10" fill="#fff3e0" stroke="#f57c00" stroke-width="1.5" opacity="0.35"/>
+<text x="380.0" y="40" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#f57c00">Metric</text>
+<rect x="565" y="50" width="330" height="170" rx="10" fill="#e8f5e9" stroke="#388e3c" stroke-width="1.5" opacity="0.35"/>
+<text x="730.0" y="40" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#388e3c">Observation</text>
+<rect x="915" y="50" width="330" height="170" rx="10" fill="#fce4ec" stroke="#c2185b" stroke-width="1.5" opacity="0.35"/>
+<text x="1080.0" y="40" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#c2185b">Benchmark</text>
+<rect x="1265" y="50" width="330" height="240" rx="10" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1.5" opacity="0.35"/>
+<text x="1430.0" y="40" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#7b1fa2">Ranking</text>
+<rect x="1615" y="50" width="170" height="310" rx="10" fill="#eceff1" stroke="#546e7a" stroke-width="1.5" opacity="0.35"/>
+<text x="1700.0" y="40" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#546e7a">Metadata</text>
+<path d="M 380.0 120 L 380.0 135.0 L 300.0 135.0 L 300.0 150" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M 380.0 120 L 380.0 135.0 L 460.0 135.0 L 460.0 150" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M 460.0 190 L 460.0 205.0 L 380.0 205.0 L 380.0 220" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M 1080.0 120 L 1080.0 135.0 L 1000.0 135.0 L 1000.0 150" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M 1080.0 120 L 1080.0 135.0 L 1160.0 135.0 L 1160.0 150" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M 1430.0 120 L 1430.0 135.0 L 1430.0 135.0 L 1430.0 150" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M 1430.0 190 L 1430.0 205.0 L 1350.0 205.0 L 1350.0 220" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M 1430.0 190 L 1430.0 205.0 L 1510.0 205.0 L 1510.0 220" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M 1700.0 120 L 1700.0 135.0 L 1700.0 135.0 L 1700.0 150" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M 730.0 120 L 730.0 135.0 L 650.0 135.0 L 650.0 150" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<path d="M 730.0 120 L 730.0 135.0 L 810.0 135.0 L 810.0 150" stroke="#666" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+<line x1="300.0" y1="170.0" x2="460.0" y2="170.0" stroke="#d32f2f" stroke-width="1.5" stroke-dasharray="5,3"/>
+<text x="380.0" y="164.0" text-anchor="middle" font-family="Arial" font-size="12" fill="#d32f2f" font-weight="bold">⊥</text>
+<line x1="650.0" y1="170.0" x2="810.0" y2="170.0" stroke="#d32f2f" stroke-width="1.5" stroke-dasharray="5,3"/>
+<text x="730.0" y="164.0" text-anchor="middle" font-family="Arial" font-size="12" fill="#d32f2f" font-weight="bold">⊥</text>
+<rect x="40.0" y="80" width="140" height="40" rx="6" fill="white" stroke="#1976d2" stroke-width="2" />
+<text x="110.0" y="104.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">Company</text>
+<rect x="40.0" y="150" width="140" height="40" rx="6" fill="white" stroke="#1976d2" stroke-width="2" />
+<text x="110.0" y="174.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">Sector</text>
+<rect x="40.0" y="220" width="140" height="40" rx="6" fill="white" stroke="#1976d2" stroke-width="2" />
+<text x="110.0" y="244.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">Industry</text>
+<rect x="310.0" y="80" width="140" height="40" rx="6" fill="white" stroke="#f57c00" stroke-width="2" />
+<text x="380.0" y="104.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">Metric</text>
+<rect x="230.0" y="150" width="140" height="40" rx="6" fill="#ffebee" stroke="#d32f2f" stroke-width="2" stroke-dasharray="4,2"/>
+<text x="300.0" y="174.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">BaseMetric</text>
+<rect x="390.0" y="150" width="140" height="40" rx="6" fill="#ffebee" stroke="#d32f2f" stroke-width="2" stroke-dasharray="4,2"/>
+<text x="460.0" y="174.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">DerivedMetric</text>
+<rect x="310.0" y="220" width="140" height="40" rx="6" fill="white" stroke="#f57c00" stroke-width="2" />
+<text x="380.0" y="244.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">DerivedRatio</text>
+<rect x="660.0" y="80" width="140" height="40" rx="6" fill="white" stroke="#388e3c" stroke-width="2" />
+<text x="730.0" y="104.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">MetricObservation</text>
+<rect x="580.0" y="150" width="140" height="40" rx="6" fill="#ffebee" stroke="#d32f2f" stroke-width="2" stroke-dasharray="4,2"/>
+<text x="650.0" y="174.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">DurationObservat..</text>
+<rect x="740.0" y="150" width="140" height="40" rx="6" fill="#ffebee" stroke="#d32f2f" stroke-width="2" stroke-dasharray="4,2"/>
+<text x="810.0" y="174.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">InstantObservation</text>
+<rect x="1010.0" y="80" width="140" height="40" rx="6" fill="white" stroke="#c2185b" stroke-width="2" />
+<text x="1080.0" y="104.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">Benchmark</text>
+<rect x="930.0" y="150" width="140" height="40" rx="6" fill="white" stroke="#c2185b" stroke-width="2" />
+<text x="1000.0" y="174.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">IndustryBenchmark</text>
+<rect x="1090.0" y="150" width="140" height="40" rx="6" fill="white" stroke="#c2185b" stroke-width="2" />
+<text x="1160.0" y="174.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">AllBenchmark</text>
+<rect x="1360.0" y="80" width="140" height="40" rx="6" fill="white" stroke="#7b1fa2" stroke-width="2" />
+<text x="1430.0" y="104.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">Ranking</text>
+<rect x="1360.0" y="150" width="140" height="40" rx="6" fill="white" stroke="#7b1fa2" stroke-width="2" />
+<text x="1430.0" y="174.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">TopRanking</text>
+<rect x="1280.0" y="220" width="140" height="40" rx="6" fill="white" stroke="#7b1fa2" stroke-width="2" />
+<text x="1350.0" y="244.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">IndustryTopRanking</text>
+<rect x="1440.0" y="220" width="140" height="40" rx="6" fill="white" stroke="#7b1fa2" stroke-width="2" />
+<text x="1510.0" y="244.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">AllTopRanking</text>
+<rect x="1630.0" y="220" width="140" height="40" rx="6" fill="white" stroke="#546e7a" stroke-width="2" />
+<text x="1700.0" y="244.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">Unit</text>
+<rect x="1630.0" y="290" width="140" height="40" rx="6" fill="white" stroke="#546e7a" stroke-width="2" />
+<text x="1700.0" y="314.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">Currency</text>
+<rect x="1630.0" y="80" width="140" height="40" rx="6" fill="white" stroke="#546e7a" stroke-width="2" />
+<text x="1700.0" y="104.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">Financial Report..</text>
+<rect x="1630.0" y="150" width="140" height="40" rx="6" fill="white" stroke="#546e7a" stroke-width="2" />
+<text x="1700.0" y="174.0" text-anchor="middle" font-family="Arial" font-size="10" fill="#333">XBRL Concept</text>
+</svg>
+  </div>
+
+  <h2>Core Classes</h2>
+  <table><thead><tr><th>Group</th><th>Name</th><th>Label</th><th>Parent</th><th>Children</th><th>Description</th></tr></thead><tbody><tr><td>Entity</td><td>Company</td><td>Company</td><td></td><td></td><td>법적 실체로서의 기업. FIBO-BE의 LegalEntity를 상속받아 표준 재무 온톨로지와의 상호 운용성을 확보함.</td></tr><tr><td>Entity</td><td>Sector</td><td>Sector</td><td></td><td></td><td>섹터 분류(예: Information Technology, Financials). 인스턴스는 efin:Sector{SectorName} 형태(C...</td></tr><tr><td>Entity</td><td>Industry</td><td>Industry</td><td></td><td></td><td>산업 분류(예: Services-Prepackaged Software). 인스턴스는 efin:Industry{IndustryName} 형태(Ca...</td></tr><tr><td>Metric</td><td>Metric</td><td>Metric</td><td></td><td>BaseMetric, DerivedMetric</td><td>추상 메트릭 개념(기본 또는 파생). 모든 재무 지표의 상위 클래스로, BaseMetric과 DerivedMetric의 합집합과 동치.</td></tr><tr><td>Metric</td><td>BaseMetric</td><td>BaseMetric</td><td>Metric</td><td></td><td>보고서/XBRL에서 직접 관측된 메트릭(예: Revenue, NetIncome, CapEx). SEC EDGAR XBRL 태그에서 추출한 원시 ...</td></tr><tr><td>Metric</td><td>DerivedMetric</td><td>DerivedMetric</td><td>Metric</td><td>DerivedRatio</td><td>다른 메트릭으로부터 계산된 메트릭(예: 마진, 성장률, 비율). BaseMetric들을 조합하여 산출되는 2차 지표로, 재무 분석의 핵심 인사이...</td></tr><tr><td>Metric</td><td>DerivedRatio</td><td>DerivedRatio</td><td>DerivedMetric</td><td></td><td>비율 형태의 파생 메트릭(예: ROE, DebtToEquity, EBITDA Margin). 두 메트릭의 나눗셈으로 표현되는 정규화된 지표로, ...</td></tr><tr><td>Observation</td><td>MetricObservation</td><td>MetricObservation</td><td></td><td>DurationObservation, InstantObservation</td><td>특정 회사와 기간에 대한 메트릭의 관측된 수치값. 메트릭 개념의 구체적 인스턴스로, 시계열 재무 데이터의 기본 단위. (회사, 메트릭, 회계연도...</td></tr><tr><td>Observation</td><td>DurationObservation</td><td>DurationObservation</td><td>MetricObservation</td><td></td><td>periodType=&#x27;duration&#x27;인 관측. 특정 기간 동안 누적된 값(예: 매출, 비용, 현금흐름)을 나타냄.</td></tr><tr><td>Observation</td><td>InstantObservation</td><td>InstantObservation</td><td>MetricObservation</td><td></td><td>periodType=&#x27;instant&#x27;인 관측. 특정 시점의 잔액 또는 상태(예: 자산, 부채, 자본)를 나타냄.</td></tr><tr><td>Benchmark</td><td>Benchmark</td><td>Benchmark</td><td></td><td>IndustryBenchmark, AllBenchmark</td><td>산업, 섹터, 전체 시장 등 특정 스코프에 대한 재무 메트릭 집계 통계(평균, 중앙값, 백분위수, 백분위수 구간 등)를 나타내는 상위 클래스.</td></tr><tr><td>Benchmark</td><td>IndustryBenchmark</td><td>IndustryBenchmark</td><td>Benchmark</td><td></td><td>특정 산업과 연도에 대한 벤치마크 통계값. 평균, 중앙값, 백분위수 등 산업 전체의 메트릭 분포를 제공하여 개별 기업 실적을 비교 평가.</td></tr><tr><td>Benchmark</td><td>AllBenchmark</td><td>AllBenchmark</td><td>Benchmark</td><td></td><td>전체 시장(모든 섹터/산업)을 통합한 벤치마크 통계값. 시장 전체 수준에서의 분포와 상대적 위치를 평가하는 데 사용.</td></tr><tr><td>Ranking</td><td>Ranking</td><td>Ranking</td><td></td><td>TopRanking</td><td>재무 메트릭에 기반한 순위 결과의 상위 클래스. 특정 스코프(산업, 섹터, 전체 시장 등)에서 기업들을 정렬한 결과를 표현.</td></tr><tr><td>Ranking</td><td>TopRanking</td><td>TopRanking</td><td>Ranking</td><td>IndustryTopRanking, AllTopRanking</td><td>특정 산업/전체 스코프 내 메트릭별 상위 랭킹(Top10, Top50, Top100). 단일 또는 복합 메트릭 기준 순위를 제공하여 우수 기업 ...</td></tr><tr><td>Ranking</td><td>IndustryTopRanking</td><td>IndustryTopRanking</td><td>TopRanking</td><td></td><td>특정 산업 내에서 메트릭별 상위 랭킹(Top10, Top50, Top100 등)을 나타내는 TopRanking 서브클래스.</td></tr><tr><td>Ranking</td><td>AllTopRanking</td><td>AllTopRanking</td><td>TopRanking</td><td></td><td>전체 시장(모든 섹터/산업)을 대상으로 한 메트릭별 상위 랭킹(Top10, Top50, Top100 등)을 나타내는 TopRanking 서브클래...</td></tr><tr><td>Metadata</td><td>Unit</td><td>Unit</td><td></td><td></td><td>측정 단위(USD, shares, percent 등). QUDT의 Unit과 동치로 정합하여 표준 단위 온톨로지와 상호운용성 확보.</td></tr><tr><td>Metadata</td><td>Currency</td><td>Currency</td><td></td><td></td><td>통화 단위(USD, KRW, EUR 등). QUDT의 CurrencyUnit과 정렬하여 표준 통화 체계 사용.</td></tr><tr><td>Metadata</td><td>FinancialReportingConcept</td><td>Financial Reporting Concept</td><td></td><td>XBRLConcept</td><td>재무 보고 표준의 개념 (XBRL, IFRS, K-GAAP 등). 재무 택소노미의 원본 개념과 연결하기 위한 추상 상위 클래스. 다양한 재무 보...</td></tr><tr><td>Metadata</td><td>XBRLConcept</td><td>XBRL Concept</td><td>FinancialReportingConcept</td><td></td><td>XBRL 택소노미 개념 (SEC EDGAR XBRL 특화). QName, 네임스페이스, 레이블 등 XBRL 메타데이터 보유. FinancialR...</td></tr></tbody></table>
+
+  <h2>Object Properties</h2>
+  <table><thead><tr><th>Name</th><th>Label</th><th>Domain</th><th>Range</th><th>Description</th></tr></thead><tbody><tr><td>ofCompany</td><td>ofCompany</td><td>MetricObservation</td><td>Company</td><td>관측값이 속한 회사. 함수형 속성으로 각 관측값은 정확히 하나의 회사에만 연결됨. hasObservation의 역관계.</td></tr><tr><td>observesMetric</td><td>observesMetric</td><td>MetricObservation</td><td>Metric</td><td>관측값이 측정하는 메트릭. 함수형 속성으로 각 관측값은 정확히 하나의 메트릭만 측정. observedBy의 역관계.</td></tr><tr><td>inSector</td><td>inSector</td><td>Company</td><td>Sector</td><td>회사를 해당 섹터에 연결. 섹터 단위 벤치마크 비교 및 산업 분류를 위한 상위 범주 관계.</td></tr><tr><td>inIndustry</td><td>inIndustry</td><td>Company</td><td>Industry</td><td>회사를 해당 산업에 연결. 산업 단위 벤치마크 비교를 위한 세분화된 분류 관계.</td></tr><tr><td>inSectorOf</td><td>inSectorOf</td><td>Industry</td><td>Sector</td><td>산업을 상위 섹터에 연결(비대칭). 비대칭 속성으로 정의되어 순환 참조 방지.</td></tr><tr><td>computedFromMetric</td><td>computedFromMetric</td><td>MetricObservation</td><td>Metric</td><td>파생 관측값이 참조한 입력 메트릭 개념. 예: ROE 관측값이 NetIncome과 Equity 메트릭을 참조.</td></tr><tr><td>forIndustry</td><td>forIndustry</td><td></td><td>Industry</td><td>벤치마크/랭킹의 대상 산업. 해당 산업에 속한 기업들의 집계 통계 또는 순위 결과를 나타냄.</td></tr><tr><td>forSector</td><td>forSector</td><td></td><td>Sector</td><td>벤치마크/랭킹의 대상 섹터. 전체 시장(SectorAll)에 속한 기업들의 집계 통계나 순위 결과를 나타냄.</td></tr><tr><td>forMetric</td><td>forMetric</td><td></td><td>Metric</td><td>벤치마크/랭킹의 대상 메트릭. 어떤 재무 지표에 대한 통계인지를 명시(예: ROE, RevenueGrowth 등).</td></tr><tr><td>hasBenchmark</td><td>hasBenchmark</td><td>MetricObservation</td><td>Benchmark</td><td>관측값을 해당 스코프(산업/섹터/전체 시장)의 벤치마크에 연결. 개별 기업 지표와 동종 업계 또는 전체 시장 평균/중앙값을 비교 가능하게 함.</td></tr><tr><td>hasRanking</td><td>hasRanking</td><td>Company</td><td>TopRanking</td><td>회사를 랭킹 결과에 연결. 산업/섹터 내 상대적 위치(Top10, Top50 등) 정보를 제공.</td></tr><tr><td>hasUnit</td><td>hasUnit</td><td>MetricObservation</td><td>Unit</td><td>관측값의 단위(객체 속성). 예: unit:USD, unit:PERCENT 등과 sameAs 매핑 가능.</td></tr><tr><td>hasCurrency</td><td>hasCurrency</td><td>MetricObservation</td><td>Currency</td><td>관측값의 통화 단위(객체 속성). 예: USD, EUR, KRW.</td></tr><tr><td>hasXbrlConcept</td><td>hasXbrlConcept</td><td>MetricObservation</td><td>XBRLConcept</td><td>관측에 사용된 XBRL 개념 연결. SEC EDGAR XBRL 택소노미의 원본 태그(QName, 네임스페이스 등)와의 추적성 확보.</td></tr><tr><td>hasObservation</td><td>hasObservation</td><td>Company</td><td>MetricObservation</td><td>기업이 가진 관측값(역방향 연결). ofCompany의 역속성으로, 한 기업의 모든 시계열 재무 데이터를 탐색.</td></tr><tr><td>observedBy</td><td>observedBy</td><td>Metric</td><td>MetricObservation</td><td>메트릭을 관측한 관측값(역방향 연결). observesMetric의 역속성으로, 특정 메트릭의 모든 관측 인스턴스를 탐색.</td></tr></tbody></table>
+
+  <h2>Datatype Properties</h2>
+  <table><thead><tr><th>Name</th><th>Label</th><th>Domain</th><th>Range</th><th>Description</th></tr></thead><tbody><tr><td>hasCIK</td><td>hasCIK</td><td>Company</td><td>string</td><td>SEC Central Index Key(CIK). SEC 특화 식별자.</td></tr><tr><td>hasTicker</td><td>hasTicker</td><td>Company</td><td>string</td><td>거래소 티커(=symbol).</td></tr><tr><td>hasCompanyName</td><td>hasCompanyName</td><td>Company</td><td>string</td><td>회사 공식 명칭(FIBO hasLegalName과 매핑 가능).</td></tr><tr><td>hasSIC</td><td>hasSIC</td><td>Company</td><td>string</td><td>표준 산업 분류 코드(Standard Industrial Classification).</td></tr><tr><td>hasFiscalYearEnd</td><td>hasFiscalYearEnd</td><td>Company</td><td>string</td><td>회계연도 종료일 텍스트(예: 1231).</td></tr><tr><td>hasFiscalYear</td><td>hasFiscalYear</td><td>MetricObservation</td><td>integer</td><td>관측 회계연도. 관측값 자체의 시간 식별자로, 데이터가 &#x27;언제에 대한 것인지&#x27;를 나타냄. Filing의 filingDate(보고 시점)와 독립적. 함수형 속성으로 각 관측값은 정확히 하나의 회계연도를 가짐. (회사, 메트릭, 회계연도) 복합키의 일부.</td></tr><tr><td>hasPeriodType</td><td>hasPeriodType</td><td>MetricObservation</td><td>string</td><td>기간 유형: &#x27;duration&#x27;(기간 누적값) 또는 &#x27;instant&#x27;(특정 시점 잔액). 이 값에 따라 DurationObservation/InstantObservation으로 자동 분류.</td></tr><tr><td>hasPeriodEnd</td><td>hasPeriodEnd</td><td>MetricObservation</td><td>dateTime</td><td>관측 종료일. duration인 경우 기간의 마지막 날, instant인 경우 잔액 기준일. 관측 데이터의 시간적 경계를 나타내며, Filing의 filingDate(보고 시점)와 구별됨. 정확한 시점 식별을 위한 필수 정보.</td></tr><tr><td>hasNumericValue</td><td>hasNumericValue</td><td>MetricObservation</td><td>double</td><td>관측 수치값. 함수형 속성으로 각 관측값은 정확히 하나의 숫자를 가짐. hasUnit/hasCurrency와 함께 완전한 측정값 구성.</td></tr><tr><td>isDerived</td><td>isDerived</td><td>MetricObservation</td><td>boolean</td><td>파생 관측 여부 플래그. true면 다른 메트릭으로부터 계산된 값, false면 XBRL에서 직접 추출된 값.</td></tr><tr><td>forFiscalYear</td><td>forFiscalYear</td><td></td><td>integer</td><td>벤치마크/랭킹의 기준 회계연도. 해당 연도의 기업 데이터를 집계하여 산출된 통계임을 명시.</td></tr><tr><td>hasAverageValue</td><td>hasAverageValue</td><td>Benchmark</td><td>double</td><td>평균값(산술평균). 산업/섹터 내 모든 기업의 메트릭 평균으로, 중심 경향 파악에 사용.</td></tr><tr><td>hasMedianValue</td><td>hasMedianValue</td><td>Benchmark</td><td>double</td><td>중앙값. 이상치(outlier)에 강건한 중심 경향 지표로, 평균과 함께 분포 특성 파악.</td></tr><tr><td>hasMaxValue</td><td>hasMaxValue</td><td>Benchmark</td><td>double</td><td>최대값.</td></tr><tr><td>hasMinValue</td><td>hasMinValue</td><td>Benchmark</td><td>double</td><td>최소값.</td></tr><tr><td>hasPercentile25</td><td>hasPercentile25</td><td>Benchmark</td><td>double</td><td>25백분위수.</td></tr><tr><td>hasPercentile75</td><td>hasPercentile75</td><td>Benchmark</td><td>double</td><td>75백분위수.</td></tr><tr><td>hasSampleSize</td><td>hasSampleSize</td><td>Benchmark</td><td>integer</td><td>표본 크기(회사 수). 통계 산출에 포함된 기업 수로, 통계적 신뢰도 판단의 기준.</td></tr><tr><td>hasRankingType</td><td>hasRankingType</td><td>TopRanking</td><td>string</td><td>랭킹 유형: &#x27;Top10&#x27;, &#x27;Top50&#x27;, &#x27;Top100&#x27; 또는 &#x27;Composite&#x27;. Composite는 여러 메트릭을 종합한 순위.</td></tr><tr><td>hasRank</td><td>hasRank</td><td>TopRanking</td><td>integer</td><td>순위(1부터 시작). 산업/섹터/전체 스코프 내에서의 상대적 위치를 나타냄.</td></tr></tbody></table>
+
+  <h2>Constraints & Axioms</h2>
+  <table><thead><tr><th>Type</th><th>Description</th></tr></thead><tbody><tr><td>Disjoint</td><td>BaseMetric ⊥ DerivedMetric (상호 배타적)</td></tr><tr><td>Disjoint</td><td>DurationObservation ⊥ InstantObservation (상호 배타적)</td></tr><tr><td>Complete Coverage</td><td>Metric ≡ BaseMetric ∪ DerivedMetric</td></tr><tr><td>Value Restriction</td><td>DurationObservation ≡ MetricObservation ∩ hasPeriodType=&quot;duration&quot;</td></tr><tr><td>Value Restriction</td><td>InstantObservation ≡ MetricObservation ∩ hasPeriodType=&quot;instant&quot;</td></tr><tr><td>Cardinality</td><td>MetricObservation: min 1 on ofCompany, observesMetric, hasFiscalYear, hasNumericValue, hasPeriodType</td></tr><tr><td>Key</td><td>MetricObservation key: (ofCompany, observesMetric, hasFiscalYear, hasQuarter)</td></tr></tbody></table>
+</body>
+</html>

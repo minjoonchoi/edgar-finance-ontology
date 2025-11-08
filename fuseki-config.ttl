@@ -1,0 +1,29 @@
+@prefix :        <#> .
+@prefix fuseki:  <http://jena.apache.org/fuseki#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ja:      <http://jena.hpl.hp.com/2005/11/Assembler#> .
+
+[] rdf:type fuseki:Server ;
+   fuseki:services (
+     :service
+   ) .
+
+:service rdf:type fuseki:Service ;
+    fuseki:name "edgar" ;
+    fuseki:serviceQuery "sparql" ;
+    fuseki:serviceUpdate "update" ;
+    fuseki:serviceUpload "upload" ;
+    fuseki:endpoint [ fuseki:operation fuseki:query ; fuseki:name "sparql" ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:update ; fuseki:name "update" ] ;
+    fuseki:endpoint [ fuseki:operation fuseki:upload ; fuseki:name "upload" ] ;
+    fuseki:dataset :rdfsDataset ;
+    .
+
+:rdfsDataset rdf:type ja:DatasetRDFS ;
+    ja:rdfsSchema <file:///fuseki/schema.ttl> ;
+    ja:dataset :baseDataset ;
+    .
+
+:baseDataset rdf:type ja:MemoryDataset ;
+    .
